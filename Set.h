@@ -1,9 +1,9 @@
 #pragma once
-#include "RedBlackTree.h"
+#include "Trees/RedBlackTree.h"
+#include "Trees/TreeConcept.h"
 
 #include <stdexcept>
 #include <cassert>
-#include <concepts>
 
 //T must have operators < and == defined
 template <typename T, TreeType<T> TreeImpl = RedBlackTree<T>>
@@ -78,9 +78,10 @@ public:
 		m_tree.printTree();
 	}
 
-	void insert(const T& data)
+	template<typename U>
+	Iterator insert(U&& data)
 	{
-		m_tree.insert(data);
+		return Iterator(m_tree.insert(std::forward<U>(data)));
 	}
 
 	void erase(const T& data)

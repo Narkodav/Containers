@@ -6,36 +6,6 @@
 #include <type_traits>
 #include <stack>
 
-template<typename Node, typename T>
-concept NodeType = requires(Node node) {
-	{ node.value } -> std::convertible_to<T>;
-};
-
-template<typename Tree, typename T>
-concept TreeType = requires(Tree tree, const T & value, Tree::Node* node) {
-	// Require nested Node type with a value field of type T
-	typename Tree::Node;
-	requires NodeType<typename Tree::Node, T>;
-
-	// Core operations
-	{ tree.insert(value) } -> std::same_as<typename Tree::Node*>;
-	{ tree.erase(value) } -> std::same_as<void>;
-	{ tree.erase(node) } -> std::same_as<void>;
-	{ tree.find(value) } -> std::same_as<typename Tree::Node*>;
-	{ tree.size() } -> std::same_as<size_t>;
-
-	// Const versions of operations
-	{ std::as_const(tree).find(value) } -> std::same_as<const typename Tree::Node*>;
-	{ std::as_const(tree).size() } -> std::same_as<size_t>;
-
-	// Copy operations if T is copyable
-		requires !std::is_copy_constructible_v<T> && !std::is_copy_assignable_v<T> || 
-	std::is_copy_constructible_v<Tree> && std::is_copy_assignable_v<Tree>;
-
-	// Move operations must exist
-		requires std::is_move_assignable_v<Tree> && std::is_move_constructible_v<Tree>;
-};
-
 template <typename T>
 class RedBlackTree
 {
@@ -234,7 +204,11 @@ public:
 		return nullptr;
 	}
 
-	Node* insert(const T& value) requires std::is_copy_constructible_v<T> || std::is_copy_assignable_v<T>
+	template<typename U>
+	Node* insert(U&& value)
+		requires (std::is_same_v<std::decay_t<U>, T> &&
+	(std::is_copy_constructible_v<T> || std::is_copy_assignable_v<T> ||
+		std::is_move_constructible_v<T> || std::is_move_assignable_v<T>))
 	{		
 		Node* node = m_root;
 		Node* parent = nullptr;
@@ -244,7 +218,10 @@ public:
 			parent = node;
 			if (node->value == value)
 			{
-				node->value = value;
+				if constexpr (std::is_rvalue_reference_v<U&&> && std::is_move_assignable_v<T>)
+					node->value = std::move(value);
+				else if constexpr (std::is_copy_assignable_v<T>)
+					node->value = value;
 				return node;
 			}
 			else if (node->value < value)
@@ -259,12 +236,25 @@ public:
 			}
 		}
 
-		if constexpr (std::is_copy_constructible_v<T>)
-			node = new Node(Color::Red, dir, value, parent, nullptr, nullptr);
+		if constexpr (std::is_rvalue_reference_v<U&&>)
+		{
+			if constexpr (std::is_move_constructible_v<T>)
+				node = new Node(Color::Red, dir, std::move(value), parent, nullptr, nullptr);
+			else
+			{
+				node = new Node(Color::Red, dir, parent, nullptr, nullptr);
+				node->value = std::move(value);
+			}
+		}
 		else
 		{
-			node = new Node(Color::Red, dir, parent, nullptr, nullptr);
-			node->value = value;
+			if constexpr (std::is_copy_constructible_v<T>)
+				node = new Node(Color::Red, dir, value, parent, nullptr, nullptr);
+			else
+			{
+				node = new Node(Color::Red, dir, parent, nullptr, nullptr);
+				node->value = value;
+			}
 		}
 
 		if (parent != nullptr)
@@ -277,54 +267,6 @@ public:
 			m_root = node;
 			m_root->color = Color::Black;
 		}		
-		m_size++;
-
-		return node;
-	}
-
-	Node* insert(T&& value) requires std::is_move_constructible_v<T> || std::is_move_assignable_v<T>
-	{
-		Node* node = m_root;
-		Node* parent = nullptr;
-		Direction dir = Direction::Root;
-		while (node != nullptr)
-		{
-			parent = node;
-			if (node->value == value)
-			{
-				node->value = std::move(value);
-				return node;
-			}
-			else if (node->value < value)
-			{
-				node = node->getChild(Direction::Right);
-				dir = Direction::Right;
-			}
-			else
-			{
-				node = node->getChild(Direction::Left);
-				dir = Direction::Left;
-			}
-		}
-
-		if constexpr (std::is_move_constructible_v<T>)
-			node = new Node(Color::Red, dir, std::move(value), parent, nullptr, nullptr);
-		else
-		{
-			node = new Node(Color::Red, dir, parent, nullptr, nullptr);
-			node->value = std::move(value);
-		}
-
-		if (parent != nullptr)
-		{
-			parent->getChild(dir) = node;
-			insertFixup(node);
-		}
-		else
-		{
-			m_root = node;
-			m_root->color = Color::Black;
-		}
 		m_size++;
 
 		return node;

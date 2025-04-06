@@ -1,5 +1,6 @@
 #include "Set.h"
 #include "Map.h"
+#include "Trees/AVLTree.h"
 #include <iostream>
 #include <cstdlib>
 #include <cstdint>
@@ -317,27 +318,40 @@ void runMapBenchmark(size_t numOperations) {
 
 int main() {
     // Run benchmarks with different sizes
-    std::cout << "Testing Set..." << std::endl;
-    std::cout << "Running small benchmark...\n";
-    runDetailedBenchmark(100);
+    //std::cout << "Testing Set..." << std::endl;
+    //std::cout << "Running small benchmark...\n";
+    //runDetailedBenchmark(100);
 
-    std::cout << "\nRunning medium benchmark...\n";
-    runDetailedBenchmark(10000);
+    //std::cout << "\nRunning medium benchmark...\n";
+    //runDetailedBenchmark(10000);
 
-    std::cout << "\nRunning large benchmark...\n";
-    runDetailedBenchmark(100000);
+    //std::cout << "\nRunning large benchmark...\n";
+    //runDetailedBenchmark(100000);
 
-    std::cout << std::endl;
+    //std::cout << std::endl;
 
-    std::cout << "Testing Map..." << std::endl;
-    std::cout << "Running small benchmark...\n";
-    runMapBenchmark(100);
+    //std::cout << "Testing Map..." << std::endl;
+    //std::cout << "Running small benchmark...\n";
+    //runMapBenchmark(100);
 
-    std::cout << "\nRunning medium benchmark...\n";
-    runMapBenchmark(10000);
+    //std::cout << "\nRunning medium benchmark...\n";
+    //runMapBenchmark(10000);
 
-    std::cout << "\nRunning large benchmark...\n";
-    runMapBenchmark(100000);
-    
+    //std::cout << "\nRunning large benchmark...\n";
+    //runMapBenchmark(100000);
+
+    Set<int, AVLTree<int>> set;
+    set.insert(1);
+    set.insert(2);
+    set.insert(3);
+    set.insert(4);
+    set.insert(5);
+    set.insert(6);
+    set.print();
+
+    set.erase(4);
+    set.print();
+
+
     return 0;
 }

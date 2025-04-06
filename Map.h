@@ -1,5 +1,6 @@
 #pragma once
-#include "RedBlackTree.h"
+#include "Trees/RedBlackTree.h"
+#include "Trees/TreeConcept.h"
 
 #include <stdexcept>
 #include <cassert>
@@ -36,14 +37,15 @@ public:
 	: key(std::move(k)) {
 	}
 
-	MapPair(const Key& k, const Val& v)
-		requires std::is_copy_constructible_v<Key>&& std::is_copy_constructible_v<Val>
-	: key(k), val(v) {
-	}
-
-	MapPair(Key&& k, Val&& v)
-		requires std::is_move_constructible_v<Key>&& std::is_move_constructible_v<Val>
-	: key(std::move(k)), val(std::move(v)) {
+	template<typename K, typename V>
+	MapPair(K&& k, V&& v)
+		requires (std::is_same_v<std::decay_t<K>, Key>&&
+	std::is_same_v<std::decay_t<V>, Val> &&
+		(std::is_constructible_v<Key, K&&>&&
+			std::is_constructible_v<Val, V&&>))
+		: key(std::forward<K>(k))
+		, val(std::forward<V>(v))
+	{
 	}
 
 	MapPair(const MapPair&) requires std::is_copy_constructible_v<Key>&& std::is_copy_constructible_v<Val> = default;
@@ -149,6 +151,14 @@ public:
 	void print() const
 	{
 		m_tree.printTree();
+	}
+
+
+	template<typename K, typename V>
+	Iterator insert(K&& key, V&& val)
+		requires (std::is_same_v<std::decay_t<K>, Key> && std::is_same_v<std::decay_t<V>, Val>)
+	{
+		return Iterator(m_tree.insert(MapPair<Key, Val>(std::forward<K>(key), std::forward<V>(val))));
 	}
 
 	Iterator insert(const Key& key, const Val& val)

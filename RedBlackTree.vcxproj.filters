@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="RedBlackTree.h">
+    <ClInclude Include="Trees\RedBlackTree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Set.h">
@@ -24,9 +24,15 @@
     <ClInclude Include="Map.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Trees\TreeConcept.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Trees\AVLTree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="RedBlackTree.cpp">
+    <ClCompile Include="Trees\RedBlackTree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Set.cpp">
@@ -36,6 +42,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Map.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Trees\AVLTree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
