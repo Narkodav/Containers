@@ -22,6 +22,7 @@ long long measureTime(Func&& func) {
     return std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 }
 
+
 void runBenchmark(size_t numOperations) {
     // Create vectors of random numbers for testing
     std::vector<int> insertNumbers(numOperations);
@@ -112,6 +113,7 @@ void runBenchmark(size_t numOperations) {
         (stdInsertTime + stdFindTime + stdDeleteTime) << "\n";
 }
 
+template <TreeType<int> Tree>
 void runDetailedBenchmark(size_t numOperations) {
     std::vector<int> data(numOperations);
 
@@ -138,7 +140,7 @@ void runDetailedBenchmark(size_t numOperations) {
 
     auto runTest = [&](const std::vector<int>& testData, const std::string& pattern) {
         std::set<int> stdSet;
-        Set<int> customSet;
+        Set<int, Tree> customSet;
 
         // Insert test
         auto stdInsertTime = measureTime([&]() {
@@ -210,7 +212,7 @@ void runDetailedBenchmark(size_t numOperations) {
     runTest(randomData, "Random");
 }
 
-
+template <TreeType<MapPair<int, int>> Tree>
 void runMapBenchmark(size_t numOperations) {
     std::vector<std::pair<int, int>> data(numOperations);
 
@@ -238,7 +240,7 @@ void runMapBenchmark(size_t numOperations) {
 
     auto runTest = [&](const std::vector<std::pair<int, int>>& testData, const std::string& pattern) {
         std::map<int, int> stdMap;
-        Map<int, int> customMap;
+        Map<int, int, Tree> customMap;
 
         // Insert test
         auto stdInsertTime = measureTime([&]() {
@@ -315,43 +317,128 @@ void runMapBenchmark(size_t numOperations) {
     runTest(randomData, "Random");
 }
 
+void compareTreeImplementations(size_t numOperations) {
+    std::vector<int> data(numOperations);
+
+    // Generate data patterns
+    std::iota(data.begin(), data.end(), 0);
+
+    auto reverseData = data;
+    std::reverse(reverseData.begin(), reverseData.end());
+
+    auto randomData = data;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::shuffle(randomData.begin(), randomData.end(), gen);
+
+    // Header
+    std::cout << std::setw(15) << "Pattern"
+        << std::setw(15) << "Operation"
+        << std::setw(15) << "AVL Tree"
+        << std::setw(15) << "RB Tree"
+        << std::setw(15) << "Ratio" << "\n";
+
+    auto runTest = [&](const std::vector<int>& testData, const std::string& pattern) {
+        Set<int, AVLTree<int>> avlSet;
+        Set<int, RedBlackTree<int>> rbSet;
+
+        // Insert test
+        auto avlInsertTime = measureTime([&]() {
+            for (const auto& val : testData) {
+                avlSet.insert(val);
+            }
+            });
+
+        auto rbInsertTime = measureTime([&]() {
+            for (const auto& val : testData) {
+                rbSet.insert(val);
+            }
+            });
+
+        std::cout << std::setw(15) << pattern
+            << std::setw(15) << "Insert"
+            << std::setw(15) << avlInsertTime
+            << std::setw(15) << rbInsertTime
+            << std::setw(15) << std::fixed << std::setprecision(2)
+            << static_cast<double>(avlInsertTime) / rbInsertTime << "\n";
+
+        // Find test
+        auto shuffledData = testData;
+        std::shuffle(shuffledData.begin(), shuffledData.end(), gen);
+
+        auto avlFindTime = measureTime([&]() {
+            for (const auto& val : shuffledData) {
+                if (avlSet.find(val) == nullptr) std::cerr << "Error\n";
+            }
+            });
+
+        auto rbFindTime = measureTime([&]() {
+            for (const auto& val : shuffledData) {
+                if (rbSet.find(val) == nullptr) std::cerr << "Error\n";
+            }
+            });
+
+        std::cout << std::setw(15) << pattern
+            << std::setw(15) << "Find"
+            << std::setw(15) << avlFindTime
+            << std::setw(15) << rbFindTime
+            << std::setw(15) << std::fixed << std::setprecision(2)
+            << static_cast<double>(avlFindTime) / rbFindTime << "\n";
+
+        // Delete test
+        auto avlDeleteTime = measureTime([&]() {
+            for (const auto& val : shuffledData) {
+                avlSet.erase(val);
+            }
+            });
+
+        auto rbDeleteTime = measureTime([&]() {
+            for (const auto& val : shuffledData) {
+                rbSet.erase(val);
+            }
+            });
+
+        std::cout << std::setw(15) << pattern
+            << std::setw(15) << "Delete"
+            << std::setw(15) << avlDeleteTime
+            << std::setw(15) << rbDeleteTime
+            << std::setw(15) << std::fixed << std::setprecision(2)
+            << static_cast<double>(avlDeleteTime) / rbDeleteTime << "\n";
+        };
+
+    std::cout << "\nRunning benchmark with " << numOperations << " operations\n";
+    std::cout << "----------------------------------------\n";
+    runTest(data, "Sequential");
+    runTest(reverseData, "Reverse");
+    runTest(randomData, "Random");
+}
 
 int main() {
     // Run benchmarks with different sizes
     //std::cout << "Testing Set..." << std::endl;
     //std::cout << "Running small benchmark...\n";
-    //runDetailedBenchmark(100);
+    //runDetailedBenchmark<AVLTree<int>>(100);
 
     //std::cout << "\nRunning medium benchmark...\n";
-    //runDetailedBenchmark(10000);
+    //runDetailedBenchmark<AVLTree<int>>(10000);
 
     //std::cout << "\nRunning large benchmark...\n";
-    //runDetailedBenchmark(100000);
+    //runDetailedBenchmark<AVLTree<int>>(100000);
 
     //std::cout << std::endl;
 
     //std::cout << "Testing Map..." << std::endl;
     //std::cout << "Running small benchmark...\n";
-    //runMapBenchmark(100);
+    //runMapBenchmark<AVLTree<MapPair<int, int>>>(100);
 
     //std::cout << "\nRunning medium benchmark...\n";
-    //runMapBenchmark(10000);
+    //runMapBenchmark<AVLTree<MapPair<int, int>>>(10000);
 
     //std::cout << "\nRunning large benchmark...\n";
-    //runMapBenchmark(100000);
+    //runMapBenchmark<AVLTree<MapPair<int, int>>>(100000);
 
-    Set<int, AVLTree<int>> set;
-    set.insert(1);
-    set.insert(2);
-    set.insert(3);
-    set.insert(4);
-    set.insert(5);
-    set.insert(6);
-    set.print();
-
-    set.erase(4);
-    set.print();
-
-
+    compareTreeImplementations(1000);    // Small dataset
+    compareTreeImplementations(100000);  // Medium dataset
+    compareTreeImplementations(1000000); // Large dataset
     return 0;
 }

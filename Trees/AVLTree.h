@@ -207,10 +207,10 @@ public:
 	(std::is_copy_constructible_v<T> || std::is_copy_assignable_v<T> ||
 		std::is_move_constructible_v<T> || std::is_move_assignable_v<T>))
 	{
-		size_t height = 0;
 		Node* node = m_root;
 		Node* parent = nullptr;
 		Direction dir = Direction::Root;
+
 		while (node != nullptr)
 		{
 			parent = node;
@@ -220,24 +220,15 @@ public:
 					node->value = std::move(value);
 				else if constexpr (std::is_copy_assignable_v<T>)
 					node->value = value;
-
-				while (node != m_root)
-				{
-					node->parent->balance = node->dir == Direction::Right ?
-						node->parent->balance - 1 : node->parent->balance + 1;
-					node = node->parent;
-				}
 				return node;
 			}
 			else if (node->value < value)
 			{
-				node->balance++;
 				node = node->getChild(Direction::Right);
 				dir = Direction::Right;
 			}
 			else
 			{
-				node->balance--;
 				node = node->getChild(Direction::Left);
 				dir = Direction::Left;
 			}
@@ -267,7 +258,9 @@ public:
 		if (parent != nullptr)
 		{
 			parent->getChild(dir) = node;
-			insertFixup(node);
+			parent->balance += directionMults[static_cast<size_t>(dir)];
+			if (parent->getChild(static_cast<Direction>(1 - static_cast<size_t>(dir))) == nullptr) //height changed
+				insertFixup(parent);
 		}
 		else m_root = node;
 		m_size++;
@@ -293,14 +286,14 @@ public:
 			auto* successor = node->getChild(Direction::Right);
 			if (successor != nullptr) {
 				successor->parent = parent;
-				successor->dir = node->dir;
-				successor->balance = node->balance /*- directionMults[static_cast<size_t>(Direction::Right)]*/;
+				successor->balance = 0;
+				successor->dir = node->dir;				
 			}
 
-			if (parent)
+			if (parent != nullptr)
 			{
 				parent->getChild(node->dir) = successor;
-				eraseFixup(parent, Direction::Right);
+				eraseFixup(parent, node->dir);
 			}
 			else m_root = successor;
 		}
@@ -308,12 +301,12 @@ public:
 			auto* successor = node->getChild(Direction::Left);
 			successor->parent = parent;
 			successor->dir = node->dir;
-			successor->balance = node->balance /*- directionMults[static_cast<size_t>(Direction::Right)]*/;
+			successor->balance = 0;
 
-			if (parent)
+			if (parent != nullptr)
 			{
 				parent->getChild(node->dir) = successor;
-				eraseFixup(parent, Direction::Left);
+				eraseFixup(parent, node->dir);
 			}
 			else m_root = successor;				
 		}
@@ -327,14 +320,14 @@ public:
 			{
 				successor->getChild(Direction::Left) = nodeLeftChild;
 				nodeLeftChild->parent = successor;
-				successor->dir = node->dir;
 				successor->parent = parent;
 				successor->balance = node->balance;
+				successor->dir = node->dir;
 
 				if (parent != nullptr)
 				{
 					parent->getChild(node->dir) = successor;
-					eraseFixup(parent, Direction::Right);
+					eraseFixup(successor, Direction::Right);
 				}
 				else m_root = successor;
 			}
@@ -382,7 +375,82 @@ public:
 		printNode(m_root, "", true);
 	}
 
+	bool validateAVLProperties() const {
+		return validateNode(m_root);
+	}
+
 private:
+	bool validateNode(const Node* node) const {
+		if (node == nullptr) {
+			return true;
+		}
+
+		// Check balance factor validity (-2 < balance < 2)
+		if (node->balance < -1 || node->balance > 1) {
+			std::cout << "Invalid balance factor " << (int)node->balance
+				<< " at node with value ";
+			printValue(node);
+			printTree();
+			__debugbreak();
+			return false;
+		}
+
+		// Verify direction properties
+		const Node* leftChild = node->getChild(Direction::Left);
+		const Node* rightChild = node->getChild(Direction::Right);
+
+		// Check parent-child relationship consistency
+		if (leftChild && (leftChild->parent != node || leftChild->dir != Direction::Left)) {
+			std::cout << "Invalid left child direction or parent pointer at node ";
+			printValue(node);
+			printTree();
+			__debugbreak();
+			return false;
+		}
+		if (rightChild && (rightChild->parent != node || rightChild->dir != Direction::Right)) {
+			std::cout << "Invalid right child direction or parent pointer at node ";
+			printValue(node);
+			printTree();
+			__debugbreak();
+			return false;
+		}
+
+		// Verify root node has correct direction
+		if (node->parent == nullptr && node->dir != Direction::Root) {
+			std::cout << "Root node has incorrect direction\n";
+			printTree();
+			__debugbreak();
+			return false;
+		}
+
+		// Calculate actual height difference
+		int leftHeight = getHeight(leftChild);
+		int rightHeight = getHeight(rightChild);
+		int actualBalance = rightHeight - leftHeight;
+
+		// Verify balance factor matches actual height difference
+		if (actualBalance != node->balance) {
+			std::cout << "Balance factor mismatch at node ";
+			printValue(node);
+			std::cout << "Stored: " << (int)node->balance
+				<< " Actual: " << actualBalance << "\n";
+			printTree();
+			__debugbreak();
+			return false;
+		}
+
+		// Recursively validate children
+		return validateNode(leftChild) && validateNode(rightChild);
+	}
+
+	int getHeight(const Node* node) const {
+		if (node == nullptr) {
+			return -1;
+		}
+		int leftHeight = getHeight(node->getChild(Direction::Left));
+		int rightHeight = getHeight(node->getChild(Direction::Right));
+		return 1 + std::max(leftHeight, rightHeight);
+	}
 
 	Node* getNodeCopy(const Node* other)
 	{
@@ -515,21 +583,26 @@ private:
 
 	void insertFixup(Node* node)
 	{
-		while (node != m_root && node->parent != 0)
+		while (node != m_root && node->balance != 0)
 		{
 			Node* parent = node->parent;
+			parent->balance += directionMults[static_cast<size_t>(node->dir)];
+			if (parent->balance == 0)
+				break;
+
 			Direction dir = node->dir;
 			Direction dirOpposite = static_cast<Direction>(1 - static_cast<size_t>(dir));
 
 			// Simple case - no rotation needed yet
-			if ((dir == Direction::Left && parent->balance == -1) ||
-				(dir == Direction::Right && parent->balance == 1))
+			if (parent->balance == directionMults[static_cast<size_t>(dir)])
 			{
 				node = parent;
 				continue;
 			}
 
-			if (node->balance == directionMults[static_cast<size_t>(dir)]) // Single right or left rotation
+			int8_t dif = parent->balance - node->balance;
+
+			if (dif * dif == 1) // Single right or left rotation
 			{
 				rotate(parent, dirOpposite);
 				parent->balance = 0;
@@ -569,92 +642,161 @@ private:
 		{
 			// Update balance factor
 			node->balance -= directionMults[static_cast<size_t>(deletedDirection)];
-
-			// Check if tree is balanced at this node
-			if (node->balance <= 1 && node->balance >= -1) {
+			if (node->balance == 0)
+			{
 				deletedDirection = node->dir;
 				node = node->parent;
 				continue;
 			}
-
-			if (node->balance > 1)
+			// Check if tree is balanced at this node
+			else if (node->balance == 1 || node->balance == -1)
+				break;
+			else
 			{
-				Node* child = node->getChild(Direction::Right);
-				if (child->balance >= 0)
+				Direction dir = node->balance == 2 ? Direction::Right : Direction::Left;
+				Direction dirOpposite = static_cast<Direction>(1 - static_cast<size_t>(dir));
+				Node* child = node->getChild(dir);
+				int8_t dif = node->balance - child->balance;
+				int8_t difSquare = dif * dif;
+				if (difSquare == 1 || difSquare == 4)
 				{
-					rotate(node, Direction::Left);
+					rotate(node, dirOpposite);
 					if (child->balance == 0) {  // Special case for deletion
-						node->balance = 1;
-						child->balance = -1;
+						node->balance = directionMults[static_cast<size_t>(dir)];
+						child->balance = directionMults[static_cast<size_t>(dirOpposite)];
+						break;
 					}
 					else {  // Normal case
 						node->balance = 0;
 						child->balance = 0;
 					}
+					node = child;
 				}
 				else
 				{
-					Node* grandChild = child->getChild(Direction::Left);
-					rotate(child, Direction::Right);
-					rotate(node, Direction::Left);
+					Node* grandChild = child->getChild(dirOpposite);
+					rotate(child, dir);
+					rotate(node, dirOpposite);
 
 					// Update balance factors based on grandChild's original balance
-					if (grandChild->balance == 1) {
-						node->balance = -1;
+					if (grandChild->balance == directionMults[static_cast<size_t>(dir)]) {
+						node->balance = directionMults[static_cast<size_t>(dirOpposite)];
 						child->balance = 0;
 					}
-					else if (grandChild->balance == -1) {
+					else if (grandChild->balance == directionMults[static_cast<size_t>(dirOpposite)]) {
 						node->balance = 0;
-						child->balance = 1;
+						child->balance = directionMults[static_cast<size_t>(dir)];
 					}
 					else {  // grandChild->balance == 0
 						node->balance = 0;
 						child->balance = 0;
 					}
 					grandChild->balance = 0;
+					node = grandChild;
 				}
-			}
-			else if (node->balance < -1)
-			{
-				Node* child = node->getChild(Direction::Left);
-				if (child->balance <= 0)
-				{
-					rotate(node, Direction::Right);
-					if (child->balance == 0) {  // Special case for deletion
-						node->balance = -1;
-						child->balance = 1;
-					}
-					else {  // Normal case
-						node->balance = 0;
-						child->balance = 0;
-					}
-				}
-				else
-				{
-					Node* grandChild = child->getChild(Direction::Right);
-					rotate(child, Direction::Left);
-					rotate(node, Direction::Right);
-
-					// Update balance factors based on grandChild's original balance
-					if (grandChild->balance == -1) {
-						node->balance = 1;
-						child->balance = 0;
-					}
-					else if (grandChild->balance == 1) {
-						node->balance = 0;
-						child->balance = -1;
-					}
-					else {  // grandChild->balance == 0
-						node->balance = 0;
-						child->balance = 0;
-					}
-					grandChild->balance = 0;
-				}
-			}
+			}	
 
 			deletedDirection = node->dir;
 			node = node->parent;
-		}		
+		}
+
+		//while (node != nullptr)
+		//{
+		//	// Update balance factor
+		//	node->balance -= directionMults[static_cast<size_t>(deletedDirection)];
+		//	if (node->balance == 0)
+		//	{
+		//		deletedDirection = node->dir;
+		//		node = node->parent;
+		//		continue;
+		//	}
+		//	// Check if tree is balanced at this node
+		//	else if (node->balance == 1 || node->balance == -1)
+		//		break;
+		//	else if (node->balance == 2)
+		//	{
+		//		Node* child = node->getChild(Direction::Right);
+		//		if (child->balance >= 0)
+		//		{
+		//			rotate(node, Direction::Left);
+		//			if (child->balance == 0) {  // Special case for deletion
+		//				node->balance = 1;
+		//				child->balance = -1;
+		//				break;
+		//			}
+		//			else {  // Normal case
+		//				node->balance = 0;
+		//				child->balance = 0;
+		//			}
+		//			node = child;
+		//		}
+		//		else
+		//		{
+		//			Node* grandChild = child->getChild(Direction::Left);
+		//			rotate(child, Direction::Right);
+		//			rotate(node, Direction::Left);
+
+		//			// Update balance factors based on grandChild's original balance
+		//			if (grandChild->balance == 1) {
+		//				node->balance = -1;
+		//				child->balance = 0;
+		//			}
+		//			else if (grandChild->balance == -1) {
+		//				node->balance = 0;
+		//				child->balance = 1;
+		//			}
+		//			else {  // grandChild->balance == 0
+		//				node->balance = 0;
+		//				child->balance = 0;
+		//			}
+		//			grandChild->balance = 0;
+		//			node = grandChild;
+		//		}
+		//	}
+		//	else if (node->balance == -2)
+		//	{
+		//		Node* child = node->getChild(Direction::Left);
+		//		if (child->balance <= 0)
+		//		{
+		//			rotate(node, Direction::Right);
+		//			if (child->balance == 0) {  // Special case for deletion
+		//				node->balance = -1;
+		//				child->balance = 1;
+		//				break;
+		//			}
+		//			else {  // Normal case
+		//				node->balance = 0;
+		//				child->balance = 0;
+		//			}
+		//			node = child;
+		//		}
+		//		else
+		//		{
+		//			Node* grandChild = child->getChild(Direction::Right);
+		//			rotate(child, Direction::Left);
+		//			rotate(node, Direction::Right);
+
+		//			// Update balance factors based on grandChild's original balance
+		//			if (grandChild->balance == -1) {
+		//				node->balance = 1;
+		//				child->balance = 0;
+		//			}
+		//			else if (grandChild->balance == 1) {
+		//				node->balance = 0;
+		//				child->balance = -1;
+		//			}
+		//			else {  // grandChild->balance == 0
+		//				node->balance = 0;
+		//				child->balance = 0;
+		//			}
+		//			grandChild->balance = 0;
+		//			node = grandChild;
+		//		}
+		//	}
+
+		//	deletedDirection = node->dir;
+		//	node = node->parent;
+		//}		
 	}
 
 	void rotate(Node* node, Direction dir)
