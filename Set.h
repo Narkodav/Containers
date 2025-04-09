@@ -1,6 +1,5 @@
 #pragma once
-#include "Trees/RedBlackTree.h"
-#include "Trees/TreeConcept.h"
+#include "Trees/Trees.h"
 
 #include <stdexcept>
 #include <cassert>
@@ -12,29 +11,63 @@ class Set
 public:
 	class Iterator
 	{
+	public:
+		// Iterator tags
+		using iterator_category = std::bidirectional_iterator_tag;
+		using value_type = T;
+		using difference_type = std::ptrdiff_t;
+		using pointer = const T*;
+		using reference = const T&;
+
 	private:
 		const typename TreeImpl::Node* m_node;
+		const typename TreeImpl::Node* m_root;
 
 	public:
-		Iterator(const typename TreeImpl::Node* node) : m_node(node) {};
-		~Iterator() {};
-		Iterator(const Iterator& other) : m_node(other.m_node) {};
-		Iterator& operator=(const Iterator& other)
-		{
-			m_node = other.m_node;
-			return *this;
-		};
+		Iterator(const typename TreeImpl::Node* node = nullptr, const typename TreeImpl::Node* root = nullptr) :
+			m_node(node), m_root(root) {};
+		~Iterator() = default;
 
-		const T& operator*() const {
+		Iterator(const Iterator& other) = default;
+		Iterator& operator=(const Iterator& other) = default;
+
+		Iterator(Iterator&& other) = default;
+		Iterator& operator=(Iterator&& other) = default;
+
+		reference operator*() const {
 			if (m_node == nullptr)
-				throw std::runtime_error("dereferencing nullptr iterator");
+				throw std::runtime_error("dereferencing end list iterator");
 			return m_node->value;
 		};
 
-		const T* operator->() const {
+		pointer operator->() const {
 			if (m_node == nullptr)
-				throw std::runtime_error("dereferencing nullptr iterator");
+				throw std::runtime_error("dereferencing end list iterator");
 			return &(m_node->value);
+		}
+
+		// Increment operator (in-order traversal)
+		Iterator& operator++() {
+			m_node = TreeImpl::traverseRight(m_node);
+			return *this;
+		}
+
+		// Post-increment
+		Iterator operator++(int) {
+			Iterator tmp = *this;
+			m_node = TreeImpl::traverseRight(m_node);
+			return tmp;
+		}
+
+		Iterator& operator--() {
+			m_node = TreeImpl::traverseLeft(m_node);
+			return *this;
+		}
+
+		Iterator operator--(int) {
+			Iterator tmp = *this;
+			m_node = TreeImpl::traverseLeft(m_node);
+			return tmp;
 		}
 
 		bool operator==(const Iterator& other) const
@@ -47,18 +80,11 @@ public:
 			return m_node != other.m_node;
 		};
 
-		bool operator==(std::nullptr_t) const
-		{
-			return m_node == nullptr;
-		};
-
-		bool operator!=(std::nullptr_t) const
-		{
-			return m_node != nullptr;
-		};
-
 		friend class Set<T, TreeImpl>;
 	};
+
+	using iterator = Iterator;          // Which is actually a const_iterator
+	using const_iterator = Iterator;    // Same type as iterator
 
 private:
 	TreeImpl m_tree;
@@ -73,15 +99,51 @@ public:
 	Set(Set&&) = default;
 	Set& operator=(Set&&) = default;
 
+	template <typename Container>
+		requires std::ranges::range<Container>&&
+	std::convertible_to<std::ranges::range_value_t<Container>, T>
+	Set(Container&& container)
+	{
+		for (auto&& elem : std::forward<Container>(container))
+			m_tree.insert(std::forward<decltype(elem)>(elem));
+	}
+
+	template <typename Container>
+		requires std::ranges::range<Container>&&
+	std::convertible_to<std::ranges::range_value_t<Container>, T>
+	Set& operator=(Container&& container)
+	{
+		m_tree.clear();
+		for (auto&& elem : std::forward<Container>(container))
+			m_tree.insert(std::forward<decltype(elem)>(elem));
+		return *this;
+	}
+
+	Set(std::initializer_list<T> init)
+	{
+		for (const auto& value : init) {
+			m_tree.insert(value);
+		}
+	}
+
+	Set& operator=(std::initializer_list<T> init)
+	{
+		m_tree.clear();
+		for (const auto& value : init) {
+			m_tree.insert(value);
+		}
+		return *this;
+	}
+
 	void print() const
 	{
 		m_tree.printTree();
 	}
 
 	template<typename U>
-	Iterator insert(U&& data)
+	iterator insert(U&& data)
 	{
-		return Iterator(m_tree.insert(std::forward<U>(data)));
+		return iterator(m_tree.insert(std::forward<U>(data)));
 	}
 
 	void erase(const T& data)
@@ -89,15 +151,15 @@ public:
 		m_tree.erase(data);
 	}
 
-	void erase(const Iterator& it)
+	void erase(const iterator& it)
 	{
 		m_tree.erase(it.m_node);
 		it.m_node = nullptr;
 	}
 
-	Iterator find(const T& data) const
+	iterator find(const T& data) const
 	{
-		return Iterator(m_tree.find(data));
+		return iterator(m_tree.find(data));
 	}
 
 	size_t size() const
@@ -109,5 +171,24 @@ public:
 	{
 		return m_tree.size() == 0;
 	}
+
+	iterator begin() const {
+		return iterator(m_tree.getLeftmost(), m_tree.getRoot());
+	}  
+	
+	iterator end() const {
+		return iterator(nullptr, m_tree.getRoot());
+	}
+
+	const_iterator cbegin() const { return begin(); }
+	const_iterator cend() const { return end(); }
 };
 
+template<typename T>
+using RBSet = Set<T, RedBlackTree<T>>;
+
+template<typename T>
+using AVLSet = Set<T, AVLTree<T>>;
+
+template<typename T>
+using FastSearchSet = Set<T, AVLTree<T>>;

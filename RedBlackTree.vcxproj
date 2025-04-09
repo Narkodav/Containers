@@ -134,16 +134,16 @@
   <ItemGroup>
     <ClInclude Include="Map.h" />
     <ClInclude Include="Trees\AVLTree.h" />
-    <ClInclude Include="Trees\RedBlackTree.h" />
     <ClInclude Include="Set.h" />
-    <ClInclude Include="Trees\TreeConcept.h" />
+    <ClInclude Include="Trees\RedBlackTree.h" />
+    <ClInclude Include="Trees\Trees.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="Trees\AVLTree.cpp" />
-    <ClCompile Include="Trees\RedBlackTree.cpp" />
     <ClCompile Include="Set.cpp" />
+    <ClCompile Include="Trees\RedBlackTree.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

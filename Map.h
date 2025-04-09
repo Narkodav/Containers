@@ -1,6 +1,6 @@
 #pragma once
 #include "Trees/RedBlackTree.h"
-#include "Trees/TreeConcept.h"
+#include "Trees/Trees.h"
 
 #include <stdexcept>
 #include <cassert>
@@ -39,10 +39,10 @@ public:
 
 	template<typename K, typename V>
 	MapPair(K&& k, V&& v)
-		requires (std::is_same_v<std::decay_t<K>, Key>&&
-	std::is_same_v<std::decay_t<V>, Val> &&
-		(std::is_constructible_v<Key, K&&>&&
-			std::is_constructible_v<Val, V&&>))
+		requires (std::is_convertible_v<K, Key>&&
+	std::is_convertible_v<V, Val>&&
+		std::is_constructible_v<Key, K&&>&&
+		std::is_constructible_v<Val, V&&>)
 		: key(std::forward<K>(k))
 		, val(std::forward<V>(v))
 	{
@@ -59,8 +59,12 @@ public:
 	Val& getValue() noexcept { return val; }
 };
 
+template<typename K, typename V>
+MapPair(K, V) -> MapPair<std::decay_t<K>, std::decay_t<V>>;
+
 //T must have operators < and == defined
-template <typename Key, typename Val, TreeType<MapPair<Key, Val>> TreeImpl = RedBlackTree<MapPair<Key, Val>>>
+template <typename Key, typename Val, 
+	TreeType<MapPair<Key, Val>> TreeImpl = RedBlackTree<MapPair<Key, Val>>>
 class Map
 {
 private:
@@ -80,29 +84,78 @@ private:
 public:
 	class Iterator
 	{
+	public:
+		// Iterator tags
+		using iterator_category = std::bidirectional_iterator_tag;
+		using value_type = MapPair<Key, Val>;
+		using difference_type = std::ptrdiff_t;
+		using pointer = value_type*;
+		using reference = value_type&;
+		using const_reference = const reference;
+		using const_pointer = const pointer;
+
 	private:
-		const typename TreeImpl::Node* m_node;
+		typename TreeImpl::Node* m_node;
+		typename TreeImpl::Node* m_root;
 
 	public:
-		Iterator(const typename TreeImpl::Node* node) : m_node(node) {};
-		~Iterator() {};
-		Iterator(const Iterator& other) : m_node(other.m_node) {};
-		Iterator& operator=(const Iterator& other)
-		{
-			m_node = other.m_node;
+		Iterator(typename TreeImpl::Node* node = nullptr, typename TreeImpl::Node* root = nullptr) :
+			m_node(node), m_root(root) {
+		};
+		~Iterator() = default;
+
+		Iterator(const Iterator& other) = default;
+		Iterator& operator=(const Iterator& other) = default;
+
+		Iterator(Iterator&& other) = default;
+		Iterator& operator=(Iterator&& other) = default;
+
+		reference operator*() {
+			if (m_node == nullptr)
+				throw std::runtime_error("dereferencing end list iterator");
+			return m_node->value;
+		};
+
+		const_reference operator*() const {
+			if (m_node == nullptr)
+				throw std::runtime_error("dereferencing end list iterator");
+			return m_node->value;
+		};
+
+		pointer operator->() {
+			if (m_node == nullptr)
+				throw std::runtime_error("dereferencing end list iterator");
+			return &(m_node->value);
+		}
+
+		const_pointer operator->() const {
+			if (m_node == nullptr)
+				throw std::runtime_error("dereferencing end list iterator");
+			return &(m_node->value);
+		}
+
+		// Increment operator (in-order traversal)
+		Iterator& operator++() {
+			m_node = TreeImpl::traverseRight(m_node);
 			return *this;
-		};
+		}
 
-		const Val& operator*() const {
-			if (m_node == nullptr)
-				throw std::runtime_error("dereferencing nullptr iterator");
-			return m_node->value.getValue();
-		};
+		// Post-increment
+		Iterator operator++(int) {
+			Iterator tmp = *this;
+			m_node = TreeImpl::traverseRight(m_node);
+			return tmp;
+		}
 
-		const Val* operator->() const {
-			if (m_node == nullptr)
-				throw std::runtime_error("dereferencing nullptr iterator");
-			return &(m_node->value.getValue());
+		Iterator& operator--() {
+			m_node = TreeImpl::traverseLeft(m_node);
+			return *this;
+		}
+
+		Iterator operator--(int) {
+			Iterator tmp = *this;
+			m_node = TreeImpl::traverseLeft(m_node);
+			return tmp;
 		}
 
 		bool operator==(const Iterator& other) const
@@ -115,55 +168,154 @@ public:
 			return m_node != other.m_node;
 		};
 
-		bool operator==(std::nullptr_t) const
-		{
-			return m_node == nullptr;
-		};
+		friend class Map<Key, Val, TreeImpl>;
+	};
 
-		bool operator!=(std::nullptr_t) const
-		{
-			return m_node != nullptr;
-		};
+	class ConstIterator
+	{
+	public:
+		// Iterator tags
+		using iterator_category = std::bidirectional_iterator_tag;
+		using value_type = const MapPair<Key, Val>;
+		using difference_type = std::ptrdiff_t;
+		using pointer = value_type*;
+		using reference = value_type&;
+		using const_reference = reference;
+		using const_pointer = pointer;
 
-		const Key& getKey() const
-		{
+	private:
+		const typename TreeImpl::Node* m_node;
+		const typename TreeImpl::Node* m_root;
+
+	public:
+		ConstIterator(const typename TreeImpl::Node* node = nullptr, const typename TreeImpl::Node* root = nullptr) :
+			m_node(node), m_root(root) {
+		};
+		~ConstIterator() = default;
+
+		ConstIterator(const ConstIterator& other) = default;
+		ConstIterator& operator=(const ConstIterator& other) = default;
+
+		ConstIterator(ConstIterator&& other) = default;
+		ConstIterator& operator=(ConstIterator&& other) = default;
+
+		const_reference operator*() const {
 			if (m_node == nullptr)
-				throw std::runtime_error("dereferencing nullptr iterator");
-			return m_node->value.getKey();
+				throw std::runtime_error("dereferencing end list iterator");
+			return m_node->value;
+		};
+
+		const_pointer operator->() const {
+			if (m_node == nullptr)
+				throw std::runtime_error("dereferencing end list iterator");
+			return &(m_node->value);
 		}
+
+		// Increment operator (in-order traversal)
+		ConstIterator& operator++() {
+			m_node = TreeImpl::traverseRight(m_node);
+			return *this;
+		}
+
+		// Post-increment
+		ConstIterator operator++(int) {
+			ConstIterator tmp = *this;
+			m_node = TreeImpl::traverseRight(m_node);
+			return tmp;
+		}
+
+		ConstIterator& operator--() {
+			m_node = TreeImpl::traverseLeft(m_node);
+			return *this;
+		}
+
+		ConstIterator operator--(int) {
+			ConstIterator tmp = *this;
+			m_node = TreeImpl::traverseLeft(m_node);
+			return tmp;
+		}
+
+		bool operator==(const ConstIterator& other) const
+		{
+			return m_node == other.m_node;
+		};
+
+		bool operator!=(const ConstIterator& other) const
+		{
+			return m_node != other.m_node;
+		};
 
 		friend class Map<Key, Val, TreeImpl>;
 	};
+
+	using iterator = Iterator;          
+	using const_iterator = ConstIterator;
+	using Pair = MapPair<Key, Val>;
 
 private:
 	TreeImpl m_tree;
 
 public:
 	Map() = default;
-	Map(const Map&) requires std::is_copy_constructible_v<MapPair<Key, Val>> ||
-		std::is_copy_assignable_v<MapPair<Key, Val>> = default;
-	Map& operator=(const Map&) requires std::is_copy_constructible_v<MapPair<Key, Val>> ||
-		std::is_copy_assignable_v<MapPair<Key, Val>> = default;
+	Map(const Map&) requires std::is_copy_constructible_v<Pair> ||
+		std::is_copy_assignable_v<Pair> = default;
+	Map& operator=(const Map&) requires std::is_copy_constructible_v<Pair> ||
+		std::is_copy_assignable_v<Pair> = default;
 
 	Map(Map&&) = default;
 	Map& operator=(Map&&) = default;
+
+	//template <typename Container>
+	//	requires std::ranges::range<Container>&&
+	//std::convertible_to<std::ranges::range_value_t<Container>, T>
+	//	Map(Container&& container)
+	//{
+	//	for (auto&& elem : std::forward<Container>(container))
+	//		m_tree.insert(std::forward<decltype(elem)>(elem));
+	//}
+
+	//template <typename Container>
+	//	requires std::ranges::range<Container>&&
+	//std::convertible_to<std::ranges::range_value_t<Container>, T>
+	//	Map& operator=(Container&& container)
+	//{
+	//	m_tree.clear();
+	//	for (auto&& elem : std::forward<Container>(container))
+	//		m_tree.insert(std::forward<decltype(elem)>(elem));
+	//	return *this;
+	//}
+
+	Map(std::initializer_list<Pair> init)
+	{
+		for (const auto& value : init) {
+			m_tree.insert(value);
+		}
+	}
+
+	Map& operator=(std::initializer_list<Pair> init)
+	{
+		m_tree.clear();
+		for (const auto& value : init) {
+			m_tree.insert(value);
+		}
+		return *this;
+	}
 
 	void print() const
 	{
 		m_tree.printTree();
 	}
 
-
 	template<typename K, typename V>
-	Iterator insert(K&& key, V&& val)
+	iterator insert(K&& key, V&& val)
 		requires (std::is_same_v<std::decay_t<K>, Key> && std::is_same_v<std::decay_t<V>, Val>)
 	{
-		return Iterator(m_tree.insert(MapPair<Key, Val>(std::forward<K>(key), std::forward<V>(val))));
+		return iterator(m_tree.insert(MapPair<Key, Val>(std::forward<K>(key), std::forward<V>(val))));
 	}
 
-	Iterator insert(const Key& key, const Val& val)
+	iterator insert(const Key& key, const Val& val)
 	{
-		return Iterator(m_tree.insert(MapPair<Key, Val>(key, val)));
+		return iterator(m_tree.insert(MapPair<Key, Val>(key, val)));
 	}
 
 	void erase(const Key& key)
@@ -171,14 +323,19 @@ public:
 		m_tree.erase(MapPair<Key, Val>(key));
 	}
 
-	void erase(const Iterator& it)
+	void erase(const_iterator& it)
 	{
-		m_tree.erase(it);
+		m_tree.erase(it->getKey());
 	}
 
-	Iterator find(const Key& key) const
+	iterator find(const Key& key)
 	{
-		return Iterator(m_tree.find(MapPair<Key, Val>(key)));
+		return iterator(m_tree.find(MapPair<Key, Val>(key)));
+	}
+
+	const_iterator find(const Key& key) const
+	{
+		return const_iterator(m_tree.find(MapPair<Key, Val>(key)));
 	}
 
 	size_t size() const
@@ -190,5 +347,29 @@ public:
 	{
 		return m_tree.size() == 0;
 	}
+
+	iterator begin() {
+		return iterator(m_tree.getLeftmost(), m_tree.getRoot());
+	}
+
+	iterator end() {
+		return iterator(nullptr, m_tree.getRoot());
+	}
+
+	const_iterator begin() const {
+		return const_iterator(m_tree.getLeftmost(), m_tree.getRoot());
+	}
+
+	const_iterator end() const {
+		return const_iterator(nullptr, m_tree.getRoot());
+	}
 };
 
+template<typename Key, typename Val>
+using RBMap = Map<Key, Val, RedBlackTree<MapPair<Key, Val>>>;
+
+template<typename Key, typename Val>
+using AVLMap = Map<Key, Val, AVLTree<MapPair<Key, Val>>>;
+
+template<typename Key, typename Val>
+using FastSearchMap = Map<Key, Val, AVLTree<MapPair<Key, Val>>>;

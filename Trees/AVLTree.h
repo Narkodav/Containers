@@ -163,6 +163,81 @@ public:
 		return m_root;
 	}
 
+	Node* getLeftmost()
+	{
+		return const_cast<Node*>(std::as_const(*this).getLeftmost());
+	}
+
+	const Node* getLeftmost() const
+	{
+		if (m_root == nullptr)
+			return nullptr;
+		Node* node = m_root;
+		while (node->getChild(Direction::Left) != nullptr)
+			node = node->getChild(Direction::Left);
+		return node;
+	}
+
+	static const Node* traverseRight(const Node* node)
+	{
+		if (node == nullptr)
+			return nullptr;
+
+		if (node->getChild(Direction::Right) != nullptr) {
+			// If there's a right child, go right once and then
+			// as far left as possible
+			const Node* current = node->getChild(Direction::Right);
+			while (current->getChild(Direction::Left) != nullptr)
+				current = current->getChild(Direction::Left);
+			return current;
+		}
+		else {
+			// Otherwise, go up until we find a parent where we came from the left
+			const Node* current = node;
+			const Node* parent = node->parent;
+			while (parent != nullptr && current->dir == Direction::Right) {
+				current = parent;
+				parent = parent->parent;
+			}
+			return parent;
+		}
+	}
+
+	static const Node* traverseLeft(const Node* node)
+	{
+		if (node == nullptr)
+			return nullptr;
+
+		if (node->getChild(Direction::Left) != nullptr) {
+			// If there's a left child, go left once and then
+			// as far right as possible
+			const Node* current = node->getChild(Direction::Left);
+			while (current->getChild(Direction::Right) != nullptr)
+				current = current->getChild(Direction::Right);
+			return current;
+		}
+		else {
+			// Otherwise, go up until we find a parent where we came from the right
+			const Node* current = node;
+			const Node* parent = node->parent;
+			while (parent != nullptr && current->dir == Direction::Left) {
+				current = parent;
+				parent = parent->parent;
+			}
+			return parent;
+		}
+	}
+
+	static Node* traverseRight(Node* node)
+	{
+		return const_cast<Node*>(traverseRight(static_cast<const Node*>(node)));
+	}
+
+	static Node* traverseLeft(Node* node)
+	{
+		return const_cast<Node*>(traverseLeft(static_cast<const Node*>(node)));
+	}
+
 	Node* find(const T& value)
 	{
 		return find(value, m_root);
