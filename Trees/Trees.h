@@ -18,6 +18,9 @@ concept TreeType = requires(Tree tree, const T & value, T && rvalue,
 	typename Tree::Node;
 	requires NodeType<typename Tree::Node, T>;
 
+	Tree();
+	std::destructible<Tree>;
+
 	// Core operations
 	{ tree.insert(rvalue) } -> std::same_as<typename Tree::Node*>; // rvalue
 	{ tree.erase(value) } -> std::same_as<void>;

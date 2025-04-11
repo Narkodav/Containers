@@ -30,6 +30,21 @@
     <ClInclude Include="Trees\RedBlackTree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="HashTables\HashTableLinkedList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Lists\ListOneSided.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Lists\Lists.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Lists\ListDoubleSided.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Lists\ListDoubleSidedTailed.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Set.cpp">
@@ -45,6 +60,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Trees\RedBlackTree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HashTables\HashTableLinkedList.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Lists\ListOneSided.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Lists\ListDoubleSided.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Lists\ListDoubleSidedTailed.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -107,6 +107,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -123,6 +124,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -132,6 +134,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="HashTables\HashTableLinkedList.h" />
+    <ClInclude Include="Lists\ListDoubleSidedTailed.h" />
+    <ClInclude Include="Lists\ListDoubleSided.h" />
+    <ClInclude Include="Lists\ListOneSided.h" />
+    <ClInclude Include="Lists\Lists.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="Trees\AVLTree.h" />
     <ClInclude Include="Set.h" />
@@ -139,6 +146,10 @@
     <ClInclude Include="Trees\Trees.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="HashTables\HashTableLinkedList.cpp" />
+    <ClCompile Include="Lists\ListDoubleSidedTailed.cpp" />
+    <ClCompile Include="Lists\ListDoubleSided.cpp" />
+    <ClCompile Include="Lists\ListOneSided.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="Trees\AVLTree.cpp" />
