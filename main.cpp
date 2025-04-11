@@ -1,4 +1,5 @@
-#include "Set.h"
+#include "Sets/Set.h"
+#include "Sets/UnorderedSet.h"
 #include "Map.h"
 #include "Trees/AVLTree.h"
 #include <iostream>
@@ -440,5 +441,18 @@ int main() {
     //compareTreeImplementations(1000);    // Small dataset
     //compareTreeImplementations(100000);  // Medium dataset
     //compareTreeImplementations(1000000); // Large dataset
+
+    UnorderedSet<int> set;
+
+    for (int i = 0; i < 100; i++)
+        set.insert(i);
+
+    int i = 0;
+    for (auto it : set)
+    {
+        std::cout << it << std::endl;
+        i++;
+    }
+
     return 0;
 }

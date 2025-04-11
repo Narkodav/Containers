@@ -21,11 +21,10 @@ public:
 
 	private:
 		const typename TreeImpl::Node* m_node;
-		const typename TreeImpl::Node* m_root;
 
 	public:
-		Iterator(const typename TreeImpl::Node* node = nullptr, const typename TreeImpl::Node* root = nullptr) :
-			m_node(node), m_root(root) {};
+		Iterator(const typename TreeImpl::Node* node = nullptr) :
+			m_node(node) {};
 		~Iterator() = default;
 
 		Iterator(const Iterator& other) = default;
@@ -173,11 +172,11 @@ public:
 	}
 
 	iterator begin() const {
-		return iterator(m_tree.getLeftmost(), m_tree.getRoot());
+		return iterator(m_tree.getLeftmost());
 	}  
 	
 	iterator end() const {
-		return iterator(nullptr, m_tree.getRoot());
+		return iterator(nullptr);
 	}
 
 	const_iterator cbegin() const { return begin(); }

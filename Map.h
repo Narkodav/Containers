@@ -96,11 +96,10 @@ public:
 
 	private:
 		typename TreeImpl::Node* m_node;
-		typename TreeImpl::Node* m_root;
 
 	public:
-		Iterator(typename TreeImpl::Node* node = nullptr, typename TreeImpl::Node* root = nullptr) :
-			m_node(node), m_root(root) {
+		Iterator(typename TreeImpl::Node* node = nullptr) :
+			m_node(node) {
 		};
 		~Iterator() = default;
 
@@ -185,11 +184,10 @@ public:
 
 	private:
 		const typename TreeImpl::Node* m_node;
-		const typename TreeImpl::Node* m_root;
 
 	public:
-		ConstIterator(const typename TreeImpl::Node* node = nullptr, const typename TreeImpl::Node* root = nullptr) :
-			m_node(node), m_root(root) {
+		ConstIterator(const typename TreeImpl::Node* node = nullptr) :
+			m_node(node) {
 		};
 		~ConstIterator() = default;
 
@@ -349,19 +347,19 @@ public:
 	}
 
 	iterator begin() {
-		return iterator(m_tree.getLeftmost(), m_tree.getRoot());
+		return iterator(m_tree.getLeftmost());
 	}
 
 	iterator end() {
-		return iterator(nullptr, m_tree.getRoot());
+		return iterator(nullptr);
 	}
 
 	const_iterator begin() const {
-		return const_iterator(m_tree.getLeftmost(), m_tree.getRoot());
+		return const_iterator(m_tree.getLeftmost());
 	}
 
 	const_iterator end() const {
-		return const_iterator(nullptr, m_tree.getRoot());
+		return const_iterator(nullptr);
 	}
 };
 

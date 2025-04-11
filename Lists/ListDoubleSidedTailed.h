@@ -2,6 +2,7 @@
 #include <type_traits>
 #include <utility>
 #include <concepts>
+#include <stdexcept>
 
 template<typename T>
 class ListDoubleSidedTailed
@@ -28,7 +29,7 @@ public:
 
         template<typename U>
             requires std::is_same_v<ValueType, std::decay_t<U>>
-        static void copyConstruct(U&& data)
+        static Node* copyConstruct(U&& data)
         {
             Node* newNode;
             if constexpr (std::is_rvalue_reference_v<decltype(data)>)
@@ -109,7 +110,7 @@ public:
     void insertNext(Node* current, U&& value) //inserts the element after current
     {
         if (current == nullptr) {
-            throw std::invalid_argument("Cannot insert after null node");
+            throw std::runtime_error("Cannot insert after null node");
         }
         Node* next = current->m_next;
         Node* newNext = Node::copyConstruct(std::forward<U>(value));
@@ -126,7 +127,7 @@ public:
     void insertPrevious(Node* current, U&& value) //inserts the element before current
     {
         if (current == nullptr) {
-            throw std::invalid_argument("Cannot insert after null node");
+            throw std::runtime_error("Cannot insert after null node");
         }
         Node* previous = current->m_previous;
         Node* newPrevious = Node::copyConstruct(std::forward<U>(value));
@@ -175,11 +176,11 @@ public:
     void deleteNode(Node* current) //deletes the current element
     {
         if (current == nullptr) {
-            throw std::invalid_argument("Cannot delete a null node");
+            throw std::runtime_error("Cannot delete a null node");
         }
 
         if (m_head == nullptr) {
-            throw std::invalid_argument("List is empty");
+            throw std::runtime_error("List is empty");
         }
 
         if (current == m_head) {
@@ -203,7 +204,7 @@ public:
     void deleteBack() //deletes the tail
     {
         if (m_head == nullptr) {
-            throw std::invalid_argument("List is empty");
+            throw std::runtime_error("List is empty");
         }
 
         Node* previous = m_tail->m_previous;
@@ -217,7 +218,7 @@ public:
     void deleteFront() //deletes the head
     {
         if (m_head == nullptr) {
-            throw std::invalid_argument("List is empty");
+            throw std::runtime_error("List is empty");
         }
 
         Node* next = m_head->m_next;

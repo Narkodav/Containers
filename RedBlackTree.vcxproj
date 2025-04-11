@@ -134,27 +134,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="HashTables\HashTableLinkedList.h" />
+    <ClInclude Include="HashTables\HashTableChained.h" />
+    <ClInclude Include="HashTables\HashTables.h" />
     <ClInclude Include="Lists\ListDoubleSidedTailed.h" />
     <ClInclude Include="Lists\ListDoubleSided.h" />
     <ClInclude Include="Lists\ListOneSided.h" />
     <ClInclude Include="Lists\Lists.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="Trees\AVLTree.h" />
-    <ClInclude Include="Set.h" />
+    <ClInclude Include="Sets\Set.h" />
     <ClInclude Include="Trees\RedBlackTree.h" />
     <ClInclude Include="Trees\Trees.h" />
+    <ClInclude Include="Sets\UnorderedSet.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="HashTables\HashTableLinkedList.cpp" />
+    <ClCompile Include="HashTables\HashTableChained.cpp" />
     <ClCompile Include="Lists\ListDoubleSidedTailed.cpp" />
     <ClCompile Include="Lists\ListDoubleSided.cpp" />
     <ClCompile Include="Lists\ListOneSided.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="Trees\AVLTree.cpp" />
-    <ClCompile Include="Set.cpp" />
+    <ClCompile Include="Sets\Set.cpp" />
     <ClCompile Include="Trees\RedBlackTree.cpp" />
+    <ClCompile Include="Sets\UnorderedSet.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
