@@ -4,9 +4,9 @@
 #include <stdexcept>
 #include <cassert>
 
-//T must have operators < and == defined
-template <typename T, TreeType<T> TreeImpl = RedBlackTree<T>>
-class Set
+template <typename T, typename Comparator = std::less<T>,
+	TreeType<T> TreeImpl = RedBlackTree<T, Comparator>>
+	class Set
 {
 public:
 	class Iterator
@@ -24,7 +24,8 @@ public:
 
 	public:
 		Iterator(const typename TreeImpl::Node* node = nullptr) :
-			m_node(node) {};
+			m_node(node) {
+		};
 		~Iterator() = default;
 
 		Iterator(const Iterator& other) = default;
@@ -79,11 +80,13 @@ public:
 			return m_node != other.m_node;
 		};
 
-		friend class Set<T, TreeImpl>;
+		friend class Set<T, Comparator, TreeImpl>;
 	};
 
 	using iterator = Iterator;          // Which is actually a const_iterator
 	using const_iterator = Iterator;    // Same type as iterator
+	using value_type = T;				// Must have value_type
+	using size_type = size_t;			// Must have size_type
 
 private:
 	TreeImpl m_tree;
@@ -101,7 +104,7 @@ public:
 	template <typename Container>
 		requires std::ranges::range<Container>&&
 	std::convertible_to<std::ranges::range_value_t<Container>, T>
-	Set(Container&& container)
+		Set(Container&& container)
 	{
 		for (auto&& elem : std::forward<Container>(container))
 			m_tree.insert(std::forward<decltype(elem)>(elem));
@@ -110,7 +113,7 @@ public:
 	template <typename Container>
 		requires std::ranges::range<Container>&&
 	std::convertible_to<std::ranges::range_value_t<Container>, T>
-	Set& operator=(Container&& container)
+		Set& operator=(Container&& container)
 	{
 		m_tree.clear();
 		for (auto&& elem : std::forward<Container>(container))
@@ -145,15 +148,22 @@ public:
 		return iterator(m_tree.insert(std::forward<U>(data)));
 	}
 
-	void erase(const T& data)
+	iterator erase(const T& data)
 	{
-		m_tree.erase(data);
+		auto* node = m_tree.find(data);
+		if (node == nullptr)
+			return iterator(nullptr);
+		iterator next = iterator(TreeImpl::traverseRight(node));
+		m_tree.erase(node);
+		return next;
 	}
 
-	void erase(const iterator& it)
+	iterator erase(const iterator& it)
 	{
+		iterator next = it;
+		next++;
 		m_tree.erase(it.m_node);
-		it.m_node = nullptr;
+		return next;
 	}
 
 	iterator find(const T& data) const
@@ -173,8 +183,8 @@ public:
 
 	iterator begin() const {
 		return iterator(m_tree.getLeftmost());
-	}  
-	
+	}
+
 	iterator end() const {
 		return iterator(nullptr);
 	}
@@ -183,11 +193,19 @@ public:
 	const_iterator cend() const { return end(); }
 };
 
-template<typename T>
-using RBSet = Set<T, RedBlackTree<T>>;
+// Choose RBSet when:
+// - Insertions and deletions are frequent
+// - Search time can be slightly slower
+// - You need fewer rebalancing operations
+template<typename T, typename Comparator = std::less<T>>
+using RBSet = Set<T, RedBlackTree<T, Comparator>>;
 
-template<typename T>
-using AVLSet = Set<T, AVLTree<T>>;
+template<typename T, typename Comparator = std::less<T>>
+using AVLSet = Set<T, AVLTree<T, Comparator>>;
 
-template<typename T>
-using FastSearchSet = Set<T, AVLTree<T>>;
+// Choose FastSearchSet when:
+// - Lookups are more frequent than modifications
+// - Maintaining minimal tree depth is important
+// - You need consistently fast search times
+template<typename T, typename Comparator = std::less<T>>
+using FastSearchSet = Set<T, AVLTree<T, Comparator>>;

@@ -1,5 +1,6 @@
 #pragma once
 #include "HashTableChained.h"
+#include "HashTableOpenAddress.h"
 
 template<typename HashTable>
 concept HashTableType = requires(

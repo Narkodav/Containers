@@ -5,7 +5,8 @@
 #include <cassert>
 
 //T must have operators < and == defined
-template <typename T, HashTableType HashTableImpl = HashTableChained<T>>
+template <typename T, typename Hasher = std::hash<T>,
+	HashTableType HashTableImpl = HashTableChained<T, Hasher>>
 class UnorderedSet
 {
 public:
@@ -35,13 +36,13 @@ public:
 		Iterator& operator=(Iterator&& other) = default;
 
 		reference operator*() const {
-			if (m_node.index >= m_node.tableCapacity)
+			if (!m_node.isValid())
 				throw std::runtime_error("dereferencing end list iterator");
 			return m_node.getKey();
 		};
 
 		pointer operator->() const {
-			if (m_node.index >= m_node.tableCapacity)
+			if (!m_node.isValid())
 				throw std::runtime_error("dereferencing end list iterator");
 			return &(m_node.getKey());
 		}
@@ -61,29 +62,28 @@ public:
 
 		bool operator==(const Iterator& other) const
 		{
-			return  m_node.tableCapacity == other.m_node.tableCapacity &&
-				m_node.index == other.m_node.index &&
-				m_node.currentNode == other.m_node.currentNode;
+			return  m_node == other.m_node;
 		};
 
 		bool operator!=(const Iterator& other) const
 		{
-			return m_node.tableCapacity != other.m_node.tableCapacity ||
-				m_node.index != other.m_node.index ||
-				m_node.currentNode != other.m_node.currentNode;
+			return  m_node != other.m_node;
 		};
 
-		friend class UnorderedSet<T, HashTableImpl>;
+		friend class UnorderedSet<T, Hasher, HashTableImpl>;
 	};
 
 	using iterator = Iterator;          // Which is actually a const_iterator
 	using const_iterator = Iterator;    // Same type as iterator
+	using value_type = T;
+	using size_type = size_t;
 
 private:
 	HashTableImpl m_table;
 
 public:
 	UnorderedSet() = default;
+	~UnorderedSet() = default;
 	UnorderedSet(const UnorderedSet&) requires std::is_copy_constructible_v<T> ||
 		std::is_copy_assignable_v<T> = default;
 	UnorderedSet& operator=(const UnorderedSet&) requires std::is_copy_constructible_v<T> ||
@@ -134,15 +134,24 @@ public:
 		return iterator(m_table.insert(std::forward<U>(data)));
 	}
 
-	void erase(const T& data)
+	iterator erase(const T& data)
 	{
-		m_table.erase(data);
+		auto node = m_table.find(data);
+		if (!node.isValid())
+			return iterator(m_table.end());
+		auto toErase = iterator(node);
+		auto next = toErase;
+		next++;
+		m_table.erase(toErase.m_node);
+		return next;
 	}
 
-	void erase(const iterator& it)
+	iterator erase(const iterator& it)
 	{
+		iterator itNext = it;	
+		itNext++;
 		m_table.erase(it.m_node);
-		it.m_node = nullptr;
+		return itNext;
 	}
 
 	iterator find(const T& data) const
@@ -150,9 +159,19 @@ public:
 		return iterator(m_table.find(data));
 	}
 
+	void reserve(size_t newCapacity)
+	{
+		m_table.reserve(newCapacity);
+	}
+
 	size_t size() const
 	{
 		return m_table.size();
+	}
+
+	size_t capacity() const
+	{
+		return m_table.capacity();
 	}
 
 	bool empty() const
@@ -171,3 +190,6 @@ public:
 	const_iterator cbegin() const { return begin(); }
 	const_iterator cend() const { return end(); }
 };
+
+template <typename T, typename Hasher = std::hash<T>>
+using SetOpenAdress = UnorderedSet<T, Hasher, HashTableOpenAddress<T, Hasher>>;

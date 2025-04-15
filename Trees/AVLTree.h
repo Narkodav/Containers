@@ -7,7 +7,7 @@
 #include <stack>
 #include <array>
 
-template <typename T>
+template <typename T, typename Comparator>
 class AVLTree
 {
 public:
@@ -240,21 +240,12 @@ public:
 
 	Node* find(const T& value)
 	{
-		return find(value, m_root);
+		return const_cast<Node*>(std::as_const(*this).find(value, const_cast<const Node*>(m_root)));
 	}
 
 	Node* find(const T& value, Node* root)
 	{
-		Node* node = root;
-		while (node != nullptr)
-		{
-			if (node->value == value)
-				return node;
-			else if (node->value < value)
-				node = node->getChild(Direction::Right);
-			else node = node->getChild(Direction::Left);
-		}
-		return nullptr;
+		return const_cast<Node*>(std::as_const(*this).find(value, const_cast<const Node*>(root)));
 	}
 
 	const Node* find(const T& value) const
@@ -262,16 +253,16 @@ public:
 		return find(value, m_root);
 	}
 
-	const Node* find(const T& value, Node* root) const
+	const Node* find(const T& value, const Node* root) const
 	{
 		Node* node = root;
 		while (node != nullptr)
 		{
-			if (node->value == value)
-				return node;
-			else if (node->value < value)
+			if (Comparator()(node->value, value))
 				node = node->getChild(Direction::Right);
-			else node = node->getChild(Direction::Left);
+			else if (Comparator()(value, node->value))
+				node = node->getChild(Direction::Left);
+			else return node;
 		}
 		return nullptr;
 	}
@@ -289,23 +280,23 @@ public:
 		while (node != nullptr)
 		{
 			parent = node;
-			if (node->value == value)
+			if (Comparator()(node->value, value))
+			{
+				node = node->getChild(Direction::Right);
+				dir = Direction::Right;
+			}
+			else if (Comparator()(value, node->value))
+			{
+				node = node->getChild(Direction::Left);
+				dir = Direction::Left;
+			}
+			else
 			{
 				if constexpr (std::is_rvalue_reference_v<U&&> && std::is_move_assignable_v<T>)
 					node->value = std::move(value);
 				else if constexpr (std::is_copy_assignable_v<T>)
 					node->value = value;
 				return node;
-			}
-			else if (node->value < value)
-			{
-				node = node->getChild(Direction::Right);
-				dir = Direction::Right;
-			}
-			else
-			{
-				node = node->getChild(Direction::Left);
-				dir = Direction::Left;
 			}
 		}
 

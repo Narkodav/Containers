@@ -18,7 +18,7 @@
     <ClInclude Include="Sets\Set.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Map.h">
+    <ClInclude Include="Maps\Map.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Trees\Trees.h">
@@ -51,6 +51,21 @@
     <ClInclude Include="Sets\UnorderedSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ContainerBenchmarker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Maps\UnorderedMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Maps\MapPair.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\UnionStorage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HashTables\HashTableOpenAddress.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sets\Set.cpp">
@@ -59,7 +74,7 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Map.cpp">
+    <ClCompile Include="Maps\Map.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Trees\AVLTree.cpp">
@@ -81,6 +96,21 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Sets\UnorderedSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ContainerBenchmarker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Maps\UnorderedMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Maps\MapPair.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\UnionStorage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HashTables\HashTableOpenAddress.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

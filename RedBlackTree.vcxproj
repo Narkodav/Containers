@@ -134,30 +134,40 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ContainerBenchmarker.h" />
     <ClInclude Include="HashTables\HashTableChained.h" />
+    <ClInclude Include="HashTables\HashTableOpenAddress.h" />
     <ClInclude Include="HashTables\HashTables.h" />
     <ClInclude Include="Lists\ListDoubleSidedTailed.h" />
     <ClInclude Include="Lists\ListDoubleSided.h" />
     <ClInclude Include="Lists\ListOneSided.h" />
     <ClInclude Include="Lists\Lists.h" />
-    <ClInclude Include="Map.h" />
+    <ClInclude Include="Maps\MapPair.h" />
+    <ClInclude Include="Maps\Map.h" />
     <ClInclude Include="Trees\AVLTree.h" />
     <ClInclude Include="Sets\Set.h" />
     <ClInclude Include="Trees\RedBlackTree.h" />
     <ClInclude Include="Trees\Trees.h" />
     <ClInclude Include="Sets\UnorderedSet.h" />
+    <ClInclude Include="Maps\UnorderedMap.h" />
+    <ClInclude Include="Utilities\UnionStorage.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ContainerBenchmarker.cpp" />
     <ClCompile Include="HashTables\HashTableChained.cpp" />
+    <ClCompile Include="HashTables\HashTableOpenAddress.cpp" />
     <ClCompile Include="Lists\ListDoubleSidedTailed.cpp" />
     <ClCompile Include="Lists\ListDoubleSided.cpp" />
     <ClCompile Include="Lists\ListOneSided.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Map.cpp" />
+    <ClCompile Include="Maps\MapPair.cpp" />
+    <ClCompile Include="Maps\Map.cpp" />
     <ClCompile Include="Trees\AVLTree.cpp" />
     <ClCompile Include="Sets\Set.cpp" />
     <ClCompile Include="Trees\RedBlackTree.cpp" />
     <ClCompile Include="Sets\UnorderedSet.cpp" />
+    <ClCompile Include="Maps\UnorderedMap.cpp" />
+    <ClCompile Include="Utilities\UnionStorage.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,34 +1,46 @@
 #pragma once
 #include "Lists/Lists.h"
+#include "Utilities/UnionStorage.h"
 
 #include <memory>
 #include <stdexcept>
 
-template<typename Key, typename Hasher = std::hash<Key>, ListType ListImpl = ListOneSided<std::pair<Key, size_t>>>
+template<typename Key, typename Hasher, ListType ListImpl = ListOneSided<std::pair<Key, size_t>>>
 class HashTableChained
 {
 public:
 	using ValueType = Key;
 	using KeyHashPair = std::pair<Key, size_t>;
+	using TableType = HashTableChained<Key, Hasher, ListImpl>;
 
 	struct Bucket
 	{
 		size_t firstHash = 0;
-		Key firstKey;
+		UnionStorage<Key> firstKey;
 		ListImpl collisions;
-		bool isOccupied = false;
+		
+		Bucket() : firstKey() {};
+
+		Bucket(const Bucket&) = delete;
+		Bucket& operator=(const Bucket&) = delete;
+		Bucket(Bucket&&) = delete;
+		Bucket& operator=(Bucket&&) = delete;
+
+		~Bucket() noexcept(std::is_nothrow_destructible_v<Key>)
+		{
+			if (firstKey.isEngaged())
+				firstKey.destroy();
+		}
 	};
 
 	struct Node
 	{
-		size_t tableCapacity = 0;
-		size_t index = 0;
 		ListImpl::Node* currentNode = nullptr; //if nullptr the value is first stored
 		Bucket* bucket = nullptr;
+		const TableType* table = nullptr;
 
-		Node(size_t tableCapacity = 0, size_t index = 0,
-			ListImpl::Node* currentNode = nullptr, Bucket* bucket = nullptr) :
-			tableCapacity(tableCapacity), index(index), currentNode(currentNode), bucket(bucket) {
+		Node(ListImpl::Node* currentNode = nullptr, Bucket* bucket = nullptr, const TableType* table = nullptr) :
+			currentNode(currentNode), bucket(bucket), table(table) {
 		};
 		~Node() = default;
 
@@ -42,22 +54,32 @@ public:
 
 		Key& getKey()
 		{
-			return const_cast<Key>(static_cast<const Node*>(this)->getKey());
+			return const_cast<Key&>(static_cast<const Node*>(this)->getKey());
 		}
 
 		const Key& getKey() const
 		{
-			if (index >= tableCapacity)
+			if (bucket == nullptr)
 				throw std::runtime_error("Dereferencing end list iterator");
 			if (currentNode == nullptr)
-				return bucket->firstKey;
+				return bucket->firstKey.get();
 			else return currentNode->m_data.first;
+		}
+
+		bool operator==(const Node& other) const
+		{
+			return bucket == other.bucket && currentNode == other.currentNode;
+		}
+
+		bool isValid() const
+		{
+			return bucket != nullptr;
 		}
 	};
 
 	static inline const float maxLoadFactor = 0.75f;
 	static inline const size_t initialSize = 16;
-	static inline const size_t growthFactor = 2;
+	static inline const float growthFactor = 2;
 
 private:
 
@@ -71,7 +93,10 @@ public:
 		m_capacity(initialSize), m_loadFactor(0.f)
 	{};
 
-	~HashTableChained() { delete[] m_table; };
+	~HashTableChained() { 
+		if (m_table != nullptr)
+			delete[] m_table;
+	};
 
 	HashTableChained(const HashTableChained& other)
 		requires std::is_copy_constructible_v<Key> || std::is_copy_assignable_v<Key> :
@@ -79,11 +104,10 @@ public:
 		m_capacity(other.m_capacity), m_loadFactor(other.m_loadFactor)
 	{
 		for (size_t i = 0; i < m_capacity; i++)
-			if (other.m_table[i].isOccupied)
+			if (other.m_table[i].firstKey.isEngaged())
 			{
-				m_table[i].isOccupied = true;
 				m_table[i].firstHash = other.m_table[i].firstHash;
-				m_table[i].firstKey = other.m_table[i].firstKey;
+				m_table[i].firstKey.copyConstructFrom(other.m_table[i].firstKey);
 				m_table[i].collisions = other.m_table[i].collisions;
 			}
 	}
@@ -101,19 +125,36 @@ public:
 		m_loadFactor = other.m_loadFactor;
 
 		for (size_t i = 0; i < m_capacity; i++)
-			if (other.m_table[i].isOccupied)
+			if (other.m_table[i].firstKey.isEngaged())
 			{
-				m_table[i].isOccupied = true;
 				m_table[i].firstHash = other.m_table[i].firstHash;
-				m_table[i].firstKey = other.m_table[i].firstKey;
+				m_table[i].firstKey.copyConstructFrom(other.m_table[i].firstKey);
 				m_table[i].collisions = other.m_table[i].collisions;
 			}
 
 		return *this;
 	}
 
-	HashTableChained(HashTableChained&&) = default;
-	HashTableChained& operator=(HashTableChained&&) = default;
+	HashTableChained(HashTableChained&& other) noexcept
+		: m_table(other.m_table),
+		m_size(other.m_size),
+		m_capacity(other.m_capacity),
+		m_loadFactor(other.m_loadFactor) {
+		other.m_table = nullptr;
+		other.m_size = 0;
+		other.m_capacity = 0;
+		other.m_loadFactor = 0.f;
+	}
+
+	HashTableChained& operator=(HashTableChained&& other) noexcept {
+		if (this == &other)
+			return *this;
+		m_table = std::exchange(other.m_table, nullptr);
+		m_size = std::exchange(other.m_size, 0);
+		m_capacity = std::exchange(other.m_capacity, 0);
+		m_loadFactor = std::exchange(other.m_loadFactor, 0.f);
+		return *this;
+	}
 
 	void clear(size_t reservation = initialSize)
 	{
@@ -135,9 +176,9 @@ public:
 	Node insert(K&& key)
 	{
 		size_t hash = Hasher()(key);
-		Node node = insertAtHash<K, true>(hash, std::forward<K>(key));
+		Node node = insertAtHash<true>(hash, std::forward<K>(key));
 		if (m_loadFactor > maxLoadFactor)
-			rehash<true>(m_capacity * growthFactor, node);
+			rehash<true>(growthFactor * m_capacity, node);
 		return node;
 	}	
 
@@ -148,9 +189,9 @@ public:
 		size_t index = Hasher()(key) % m_capacity;
 		Bucket& bucket = m_table[index];
 
-		if (bucket.isOccupied)
+		if (bucket.firstKey.isEngaged())
 		{
-			if (bucket.firstKey == key)
+			if (bucket.firstKey.get() == key)
 				return true;
 			else
 			{
@@ -171,22 +212,22 @@ public:
 		size_t index = Hasher()(key) % m_capacity;
 		Bucket& bucket = m_table[index];
 
-		if (bucket.isOccupied)
+		if (!bucket.firstKey.isEngaged())
+			return Node{ nullptr, nullptr, this };
+
+		// Check first element
+		if (bucket.firstKey.get() == key)
+			return Node{ nullptr, &bucket, this };
+
+		// Check collision chain
+		for (auto current = bucket.collisions.getFront(); current != nullptr;
+			current = ListImpl::iterateNext(current))
 		{
-			if (bucket.firstKey == key)
-				return Node{ m_capacity, index, nullptr, &bucket };
-			else
-			{
-				typename ListImpl::Node* current = bucket.collisions.getFront();
-				while (current != nullptr)
-				{
-					if (current->m_data.first == key)
-						return Node{ m_capacity, index, current, &bucket };
-					current = ListImpl::iterateNext(current);
-				}
-			}
+			if (current->m_data.first == key)
+				return Node{ current, &bucket, this };
 		}
-		return Node{ m_capacity, m_capacity, nullptr, nullptr };
+
+		return Node{ nullptr, nullptr, this };
 	}
 
 	bool erase(const Key& key)
@@ -194,67 +235,69 @@ public:
 		size_t index = Hasher(key) % m_capacity;
 		Bucket& bucket = m_table[index];
 
-		if (bucket.isOccupied)
+		if (!bucket.firstKey.isEngaged())
+			return false;
+
+		if (bucket.firstKey.get() == key)
 		{
-			if (bucket.firstKey == key)
+			if (bucket.collisions.getFront() == nullptr)
 			{
-				if (bucket.collisions.getFront() == nullptr)
-				{
-					std::destroy_at(&bucket.firstKey);  // More modern approach
-					bucket.isOccupied = false;
-					bucket.hash = 0;					
-				}
-				else
-				{
-					auto* head = bucket.collisions.getFront();
-					if constexpr (std::is_move_assignable_v<Key>)
-					{
-						bucket.firstKey = std::move(head->m_data.first);
-					}
-					else if constexpr (std::is_copy_assignable_v<Key>)
-					{
-						bucket.firstKey = head->m_data.first;
-					}
-					else static_assert(false, "Key type must be copy or move assignable");
-					bucket.firstHash = head->m_data.second;
-					bucket.collisions.deleteFront();					
-				}
-				m_size--;
-				return true;
+				bucket.firstKey.destroy();
+				bucket.isOccupied = false;
+				bucket.firstHash = 0;
 			}
 			else
 			{
-				typename ListImpl::Node* current = bucket.collisions.getFront();
-				while (current != nullptr)
+				bucket.firstKey.destroy();
+				auto* head = bucket.collisions.getFront();
+				if constexpr (std::is_move_assignable_v<Key>)
 				{
-					if (current->m_data.first == key)
-					{
-						bucket.collisions.deleteNode(current);
-						m_size--;
-						return true;
-					}
-					current = ListImpl::iterateNext(current);
+					bucket.firstKey.moveConstruct(std::move(head->m_data.first));
 				}
+				else if constexpr (std::is_copy_assignable_v<Key>)
+				{
+					bucket.firstKey.copyConstruct(head->m_data.first);
+				}
+				else static_assert(false, "Key type must be copy or move assignable");
+				bucket.firstHash = head->m_data.second;
+				bucket.collisions.deleteFront();
 			}
+			m_size--;
+			m_loadFactor = (float)m_size / m_capacity;
+			return true;
 		}
+
+		for (auto current = bucket.collisions.getFront(); current != nullptr;
+			current = ListImpl::iterateNext(current))
+			if (current->m_data.first == key)
+			{
+				bucket.collisions.deleteNode(current);
+				m_size--;
+				m_loadFactor = (float)m_size / m_capacity;
+				return true;
+			}
+
 		return false;
 	}
 
 	void erase(const Node& node)
 	{
+		if (node.bucket == nullptr)
+			throw std::runtime_error("iterating with an invalid node");
 		Bucket& bucket = *node.bucket;
 		if (node.currentNode != nullptr)
 			bucket.collisions.deleteNode(node.currentNode);
 		else if(bucket.collisions.getFront() != nullptr)
 		{
+			bucket.firstKey.destroy();
 			auto* head = bucket.collisions.getFront();
 			if constexpr (std::is_move_assignable_v<Key>)
 			{
-				bucket.firstKey = std::move(head->m_data.first);
+				bucket.firstKey.moveConstruct(std::move(head->m_data.first));
 			}
 			else if constexpr (std::is_copy_assignable_v<Key>)
 			{
-				bucket.firstKey = head->m_data.first;
+				bucket.firstKey.copyConstruct(head->m_data.first);
 			}
 			else static_assert(false, "Key type must be copy or move assignable");
 			bucket.firstHash = head->m_data.second;
@@ -262,49 +305,54 @@ public:
 		}
 		else
 		{
-			std::destroy_at(&bucket.firstKey);
+			bucket.firstKey.destroy();
 			bucket.firstHash = 0;
-			bucket.isOccupied = false;
 		}
 		m_size--;
+		m_loadFactor = (float)m_size / m_capacity;
 	}
 
 	static Node iterateNext(const Node& node)
 	{
-		if (node.index >= node.tableCapacity)
+		if (node.bucket == nullptr)
 			throw std::runtime_error("iterating with an invalid node");
 
 		Node newNode;
 		newNode.bucket = node.bucket;
 		newNode.currentNode = node.currentNode;
-		newNode.index = node.index;
-		newNode.tableCapacity = node.tableCapacity;
+		newNode.table = node.table;
 
 		if (newNode.currentNode == nullptr) {
-			// Currently at bucket's first element
-			if (newNode.bucket->collisions.getFront() != nullptr) {
+			if(newNode.bucket->collisions.getFront() != nullptr)
+			{
 				// Move to first collision if it exists
 				newNode.currentNode = newNode.bucket->collisions.getFront();
-			}
-			else {
-				// Move to next bucket
-				do {
-					newNode.index++;
-					newNode.bucket++;
-				} while (newNode.index < newNode.tableCapacity && !newNode.bucket->isOccupied);
+				return newNode;
 			}
 		}
 		else {
 			// Currently in collision list
 			newNode.currentNode = ListImpl::iterateNext(newNode.currentNode);
-			if (newNode.currentNode == nullptr) {
-				// Move to next bucket
-				do {
-					newNode.index++;
-					newNode.bucket++;
-				} while (newNode.index < newNode.tableCapacity && !newNode.bucket->isOccupied);
+			if (newNode.currentNode != nullptr) {
+				return newNode;
 			}
 		}
+
+		// Move to next bucket
+		size_t capacity = newNode.table->m_capacity;
+		size_t index = newNode.bucket - newNode.table->m_table;
+		while (true) {
+			index++;
+			newNode.bucket++;
+			if (index >= capacity)
+			{
+				newNode.bucket = nullptr;
+				newNode.table = nullptr;
+				break;
+			}
+			else if (newNode.bucket->firstKey.isEngaged())
+				break;
+		};
 		return newNode;
 	}
 
@@ -317,65 +365,65 @@ public:
 	{		
 		for (int i = 0; i < m_capacity; i++)
 		{
-			if (m_table[i].isOccupied)
-				return Node(m_capacity, i, nullptr, m_table + i);
+			if (m_table[i].firstKey.isEngaged())
+				return Node(nullptr, m_table + i, this);
 		}
-		return Node(m_capacity, m_capacity, nullptr, nullptr);
+		return Node(nullptr, nullptr, this);
 	}
 
 	Node end() const
 	{
-		return Node(m_capacity, m_capacity, nullptr, nullptr);		
+		return Node(nullptr, nullptr, this);
 	}
 
 private:
-	template<typename K, bool ShouldReturnNode = false>
+	template<bool ShouldReturnNode, typename K>
 		requires std::is_same_v<Key, std::decay_t<K>>
 	std::conditional_t<ShouldReturnNode, Node, void> insertAtHash(size_t hash, K&& key)
 	{
 		size_t index = hash % m_capacity;
 		Bucket& bucket = m_table[index];
 
-		if (bucket.isOccupied)
+		if (bucket.firstKey.isEngaged())
 		{
-			if (bucket.firstKey == key)
+			if (bucket.firstKey.get() == key)
 			{
-				bucket.firstKey = std::forward<K>(key);
+				bucket.firstKey.destroy();
+				bucket.firstKey.perfectForwardConstruct(std::forward<K>(key));
 				bucket.firstHash = hash;
 			}
 			else
 			{
-				typename ListImpl::Node* current = bucket.collisions.getFront();
-				while (current != nullptr)
+				for(auto* current = bucket.collisions.getFront();
+					current != nullptr; current = ListImpl::iterateNext(current))
 				{
 					if (current->m_data.first == key)
 					{
 						current->m_data.first = std::forward<K>(key);
 						current->m_data.second = hash;
 						if constexpr (ShouldReturnNode)
-							return Node(m_capacity, index, current, m_table + index);
+							return Node(current, m_table + index, this);
 						else return;
 					}
-					current = ListImpl::iterateNext(current);
 				}
 				bucket.collisions.insertFront(KeyHashPair(std::forward<K>(key), hash));
 				m_size++;
 				m_loadFactor = (float)m_size / m_capacity;
 				if constexpr (ShouldReturnNode)
-					return Node(m_capacity, index, bucket.collisions.getFront(), m_table + index);
+					return Node(bucket.collisions.getFront(), m_table + index, this);
 				else return;
 			}
 		}
 		else
 		{
+			//no need to destroy here, firstKey is disengaged
 			bucket.firstHash = hash;
-			bucket.firstKey = std::forward<K>(key);
-			bucket.isOccupied = true;
+			bucket.firstKey.perfectForwardConstruct(std::forward<K>(key));
 			m_size++;
 			m_loadFactor = (float)m_size / m_capacity;
 		}
 		if constexpr (ShouldReturnNode)
-			return Node(m_capacity, index, nullptr, m_table + index);
+			return Node(nullptr, m_table + index, this);
 		else return;
 	};
 
@@ -390,36 +438,63 @@ private:
 
 		if constexpr (ShouldUpdateNode) {
 			Bucket& bucket = *oldNode.bucket;
+			Node buffer;
 			if (oldNode.currentNode == nullptr)
 			{
-				oldNode = insertAtHash<Key, true>(bucket.firstHash, std::move(bucket.firstKey));
+				if constexpr (std::is_move_assignable_v<Key>)
+					buffer = insertAtHash<true>(bucket.firstHash, std::move(bucket.firstKey.get()));
+				else if constexpr (std::is_copy_assignable_v<Key>)
+					buffer = insertAtHash<true>(bucket.firstHash, bucket.firstKey.get());
+				else static_assert(false, "Key type must be copy or move assignable");
+				bucket.firstKey.destroy();
+
 				if (bucket.collisions.getFront() != nullptr)
 				{
 					bucket.firstHash = bucket.collisions.getFront()->m_data.second;
-					bucket.firstKey = bucket.collisions.getFront()->m_data.first;
+					if constexpr (std::is_move_assignable_v<Key>)
+						bucket.firstKey.moveConstruct(std::move(bucket.collisions.getFront()->m_data.first));
+					else if constexpr (std::is_copy_assignable_v<Key>)
+						bucket.firstKey.copyConstruct(bucket.collisions.getFront()->m_data.first);
+					else static_assert(false, "Key type must be copy or move assignable");	
+					
 					bucket.collisions.deleteFront();
 				}
-				else bucket.isOccupied = false;
 			}
 			else
 			{
-				oldNode = insertAtHash<Key, true>
+				if constexpr (std::is_move_assignable_v<Key>)
+					buffer = insertAtHash<true>
 					(oldNode.currentNode->m_data.second, std::move(oldNode.currentNode->m_data.first));
-				bucket.collisions.deleteNode(oldNode.currentNode);
+				else if constexpr (std::is_copy_assignable_v<Key>)
+					buffer = insertAtHash<true>
+					(oldNode.currentNode->m_data.second, oldNode.currentNode->m_data.first);
+				else static_assert(false, "Key type must be copy or move assignable");
+
+				bucket.collisions.deleteNode(oldNode.currentNode);				
 			}
+			oldNode = buffer;
 		}
 
 		for (size_t i = 0; i < oldCapacity; i++)
 		{
 			Bucket& bucket = oldTable[i];
-			if (bucket.isOccupied)
+			if (bucket.firstKey.isEngaged())
 			{
 				size_t newIndex = bucket.firstHash % m_capacity;
-				insertAtHash(bucket.firstHash, std::move(bucket.firstKey));
+				if constexpr (std::is_move_assignable_v<Key>)
+					insertAtHash<false>(bucket.firstHash, std::move(bucket.firstKey.get()));
+				else if constexpr (std::is_copy_assignable_v<Key>)
+					insertAtHash<false>(bucket.firstHash, bucket.firstKey.get());
+				else static_assert(false, "Key type must be copy or move assignable");
+				bucket.firstKey.destroy();
 				auto* current = bucket.collisions.getFront();
 				while (current != nullptr)
 				{
-					insertAtHash(current->m_data.second, std::move(current->m_data.first));
+					if constexpr (std::is_move_assignable_v<Key>)
+						insertAtHash<false>(current->m_data.second, std::move(current->m_data.first));
+					else if constexpr (std::is_copy_assignable_v<Key>)
+						insertAtHash<false>(current->m_data.second, current->m_data.first);
+					else static_assert(false, "Key type must be copy or move assignable");
 					current = ListImpl::iterateNext(current);
 				}
 			}
