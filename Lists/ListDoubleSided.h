@@ -221,10 +221,16 @@ public:
     }
 
     Node* getFront() { return m_head; };
+
+    const Node* getFront() const { return m_head; };
+
     static Node* iterateNext(Node* current) { return current->m_next; };
     static Node* iteratePrevious(Node* current) { return current->m_previous; };
 
-    bool empty() { return m_head = nullptr; };
+    static const Node* iterateNext(const Node* current) { return current->m_next; };
+    static const Node* iteratePrevious(const Node* current) { return current->m_previous; };
+
+    bool empty() const { return m_head = nullptr; };
 
 private:
 

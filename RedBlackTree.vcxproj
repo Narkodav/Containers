@@ -134,10 +134,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="LinearStorage\Memory.h" />
+    <ClInclude Include="LinearStorage\MemoryPool.h" />
+    <ClInclude Include="Utilities\ByteArray.h" />
+    <ClInclude Include="LinearStorage\Array.h" />
     <ClInclude Include="ContainerBenchmarker.h" />
     <ClInclude Include="HashTables\HashTableChained.h" />
     <ClInclude Include="HashTables\HashTableOpenAddress.h" />
     <ClInclude Include="HashTables\HashTables.h" />
+    <ClInclude Include="LinearStorage\Vector.h" />
     <ClInclude Include="Lists\ListDoubleSidedTailed.h" />
     <ClInclude Include="Lists\ListDoubleSided.h" />
     <ClInclude Include="Lists\ListOneSided.h" />
@@ -153,9 +158,14 @@
     <ClInclude Include="Utilities\UnionStorage.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="LinearStorage\Memory.cpp" />
+    <ClCompile Include="LinearStorage\MemoryPool.cpp" />
+    <ClCompile Include="Utilities\ByteArray.cpp" />
+    <ClCompile Include="LinearStorage\Array.cpp" />
     <ClCompile Include="ContainerBenchmarker.cpp" />
     <ClCompile Include="HashTables\HashTableChained.cpp" />
     <ClCompile Include="HashTables\HashTableOpenAddress.cpp" />
+    <ClCompile Include="LinearStorage\Vector.cpp" />
     <ClCompile Include="Lists\ListDoubleSidedTailed.cpp" />
     <ClCompile Include="Lists\ListDoubleSided.cpp" />
     <ClCompile Include="Lists\ListOneSided.cpp" />

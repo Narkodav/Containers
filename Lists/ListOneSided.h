@@ -199,9 +199,14 @@ public:
     }
 
     Node* getFront() { return m_head; };
+
+    const Node* getFront() const { return m_head; };
+
     static Node* iterateNext(Node* current) { return current->m_next; };
 
-    bool empty() { return m_head == nullptr; };
+    static const Node* iterateNext(const Node* current) { return current->m_next; };
+
+    bool empty() const { return m_head == nullptr; };
 
     private:
 

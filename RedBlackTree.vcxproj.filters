@@ -66,6 +66,21 @@
     <ClInclude Include="HashTables\HashTableOpenAddress.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LinearStorage\Vector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LinearStorage\Array.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\ByteArray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LinearStorage\Memory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LinearStorage\MemoryPool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sets\Set.cpp">
@@ -111,6 +126,21 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HashTables\HashTableOpenAddress.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LinearStorage\Vector.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LinearStorage\Array.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\ByteArray.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LinearStorage\Memory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LinearStorage\MemoryPool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

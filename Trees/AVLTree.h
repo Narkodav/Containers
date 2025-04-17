@@ -255,7 +255,7 @@ public:
 
 	const Node* find(const T& value, const Node* root) const
 	{
-		Node* node = root;
+		const Node* node = root;
 		while (node != nullptr)
 		{
 			if (Comparator()(node->value, value))

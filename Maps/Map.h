@@ -339,13 +339,13 @@ public:
 };
 
 template<typename Key, typename Val, typename Comparator = std::less<Key>>
-using RBMap = Map<Key, Val, RedBlackTree<MapPairOrdered<Key, Val, Comparator>,
+using RBMap = Map<Key, Val, Comparator, RedBlackTree<MapPairOrdered<Key, Val, Comparator>,
 	typename MapPairOrdered<Key, Val, Comparator>::PairComparator>>;
 
 template<typename Key, typename Val, typename Comparator = std::less<Key>>
-using AVLMap = Map<Key, Val, AVLTree<MapPairOrdered<Key, Val, Comparator>,
+using AVLMap = Map<Key, Val, Comparator, AVLTree<MapPairOrdered<Key, Val, Comparator>,
 	typename MapPairOrdered<Key, Val, Comparator>::PairComparator>>;
 
 template<typename Key, typename Val, typename Comparator = std::less<Key>>
-using FastSearchMap = Map<Key, Val, AVLTree<MapPairOrdered<Key, Val, Comparator>,
+using FastSearchMap = Map<Key, Val, Comparator, AVLTree<MapPairOrdered<Key, Val, Comparator>,
 	typename MapPairOrdered<Key, Val, Comparator>::PairComparator>>;

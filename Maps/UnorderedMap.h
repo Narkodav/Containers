@@ -26,10 +26,6 @@ public:
 	bool operator==(const MapPairUnordered<Key, Val, Hasher>& other) const {
 		return getKey() == other.getKey();
 	}
-
-	//bool operator==(const Key& other) const {
-	//	return getKey() == other;
-	//}
 };
 
 template <typename Key, typename Val, typename Hasher = std::hash<Key>,
@@ -291,12 +287,20 @@ public:
 		return m_table.size() == 0;
 	}
 
-	iterator begin() const {
+	iterator begin() {
 		return iterator(m_table.begin());
 	}
 
-	iterator end() const {
+	iterator end() {
 		return iterator(m_table.end());
+	}
+
+	ConstIterator begin() const {
+		return ConstIterator(m_table.begin());
+	}
+
+	ConstIterator end() const {
+		return ConstIterator(m_table.end());
 	}
 
 	ConstIterator cbegin() const {

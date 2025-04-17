@@ -198,14 +198,14 @@ public:
 // - Search time can be slightly slower
 // - You need fewer rebalancing operations
 template<typename T, typename Comparator = std::less<T>>
-using RBSet = Set<T, RedBlackTree<T, Comparator>>;
+using RBSet = Set<T, Comparator, RedBlackTree<T, Comparator>>;
 
 template<typename T, typename Comparator = std::less<T>>
-using AVLSet = Set<T, AVLTree<T, Comparator>>;
+using AVLSet = Set<T, Comparator, AVLTree<T, Comparator>>;
 
 // Choose FastSearchSet when:
 // - Lookups are more frequent than modifications
 // - Maintaining minimal tree depth is important
 // - You need consistently fast search times
 template<typename T, typename Comparator = std::less<T>>
-using FastSearchSet = Set<T, AVLTree<T, Comparator>>;
+using FastSearchSet = Set<T, Comparator, AVLTree<T, Comparator>>;

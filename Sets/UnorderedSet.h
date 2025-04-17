@@ -192,4 +192,4 @@ public:
 };
 
 template <typename T, typename Hasher = std::hash<T>>
-using SetOpenAdress = UnorderedSet<T, Hasher, HashTableOpenAddress<T, Hasher>>;
+using OpenAdressSet = UnorderedSet<T, Hasher, HashTableOpenAddress<T, Hasher>>;
