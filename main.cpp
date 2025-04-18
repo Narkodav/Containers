@@ -124,14 +124,20 @@ int main() {
     //}
 
     {
-        MemoryPool<int> memory(Memory::MegaByte);
-
+        Vector<Memory> memories;
         {
-            int f = 2;
-            auto alloc = memory.allocateArrayFirstFit(10, f);
-            alloc[4] = 5;
-            for (int i = 0; i < 10; ++i)
-                std::cout << "Allocated: " << alloc[i] << std::endl;
+            Vector<Memory::Allocation<int>> integers;
+
+            for (int i = 0; i < 30; ++i)
+            {
+                memories.pushBack(Memory(Memory::MegaByte));
+                integers.pushBack(memories[i].allocateBestFit<int>(i));
+            }
+
+            for (int i = 0; i < 30; ++i)
+            {
+                std::cout << "Allocated: " << static_cast<int>(integers[i]) << std::endl;
+            }
         }
     }
 

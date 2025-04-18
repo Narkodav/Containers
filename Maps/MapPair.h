@@ -76,11 +76,15 @@ public:
 		return { key, val };
 	}
 
-	MapPair(const MapPair&) requires std::is_copy_constructible_v<Key>&& std::is_copy_constructible_v<Val> = default;
-	MapPair& operator=(const MapPair&) requires std::is_copy_assignable_v<Key>&& std::is_copy_assignable_v<Val> = default;
+	MapPair(const MapPair&) requires std::is_copy_constructible_v<Key>&& std::is_copy_constructible_v<Val> ||
+		std::is_trivially_copy_constructible_v<Key> && std::is_trivially_copy_constructible_v<Val> = default;
+	MapPair& operator=(const MapPair&) requires std::is_copy_assignable_v<Key>&& std::is_copy_assignable_v<Val> ||
+		std::is_trivially_copy_assignable_v<Key> && std::is_trivially_copy_assignable_v<Val> = default;
 
-	MapPair(MapPair&&) requires std::is_move_constructible_v<Key>&& std::is_move_constructible_v<Val> = default;
-	MapPair& operator=(MapPair&&) requires std::is_move_assignable_v<Key>&& std::is_move_assignable_v<Val> = default;
+	MapPair(MapPair&&) requires std::is_move_constructible_v<Key>&& std::is_move_constructible_v<Val> ||
+		std::is_trivially_move_constructible_v<Key> && std::is_trivially_move_constructible_v<Val> = default;
+	MapPair& operator=(MapPair&&) requires std::is_move_assignable_v<Key>&& std::is_move_assignable_v<Val> ||
+		std::is_trivially_move_assignable_v<Key> && std::is_trivially_move_assignable_v<Val> = default;
 
 	const Key& getKey() const noexcept { return key; }
 	const Val& getValue() const noexcept { return val; }

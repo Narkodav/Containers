@@ -67,11 +67,11 @@ public:
 		};
 		~Iterator() = default;
 
-		Iterator(const Iterator& other) = default;
-		Iterator& operator=(const Iterator& other) = default;
+		Iterator(const Iterator&) = default;
+		Iterator& operator=(const Iterator&) = default;
 
-		Iterator(Iterator&& other) = default;
-		Iterator& operator=(Iterator&& other) = default;
+		Iterator(Iterator&&) = default;
+		Iterator& operator=(Iterator&&) = default;
 
 		reference operator*() {
 			if (m_node == nullptr)
@@ -156,11 +156,11 @@ public:
 		};
 		~ConstIterator() = default;
 
-		ConstIterator(const ConstIterator& other) = default;
-		ConstIterator& operator=(const ConstIterator& other) = default;
+		ConstIterator(const ConstIterator&) = default;
+		ConstIterator& operator=(const ConstIterator&) = default;
 
-		ConstIterator(ConstIterator&& other) = default;
-		ConstIterator& operator=(ConstIterator&& other) = default;
+		ConstIterator(ConstIterator&&) = default;
+		ConstIterator& operator=(ConstIterator&&) = default;
 
 		const_reference operator*() const {
 			if (m_node == nullptr)

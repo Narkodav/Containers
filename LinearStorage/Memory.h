@@ -80,8 +80,8 @@ public:
             return *this;
         }
 
-        Allocation(const Allocation&) = delete;
-        Allocation& operator=(const Allocation&) = delete;
+        Allocation(const Allocation&) noexcept = delete;
+        Allocation& operator=(const Allocation&) noexcept = delete;
         
         T& operator*() { return *m_data; }
         T* operator->() { return m_data; }
@@ -169,6 +169,38 @@ public:
         m_data.destroy();
     }
 
+    Memory(const Memory&) noexcept = delete;
+    Memory& operator=(const Memory&) noexcept = delete;
+
+    Memory(Memory&&) noexcept = delete;
+    Memory& operator=(Memory&&) noexcept = delete;
+
+    //Memory(Memory&& other) noexcept
+    //{
+    //    m_data = std::move(other.m_data);
+    //    m_freeBlocks = std::exchange(other.m_freeBlocks, ListDoubleSidedTailed<Block>());
+    //    m_usedBlocks = std::exchange(other.m_usedBlocks, ListDoubleSidedTailed<Block>());
+    //    m_size = std::exchange(other.m_size, 0);
+    //    m_freeSize = std::exchange(other.m_freeSize, 0);
+    //    m_freeBlockAmount = std::exchange(other.m_freeBlockAmount, 0);
+    //    m_usedBlockAmount = std::exchange(other.m_usedBlockAmount, 0);
+    //}
+
+    //Memory& operator=(Memory&& other) noexcept
+    //{
+    //    if (this == &other)
+    //        return *this;
+    //    m_data.destroy();
+    //    m_data = std::move(other.m_data);
+    //    m_freeBlocks = std::exchange(other.m_freeBlocks, ListDoubleSidedTailed<Block>());
+    //    m_usedBlocks = std::exchange(other.m_usedBlocks, ListDoubleSidedTailed<Block>());
+    //    m_size = std::exchange(other.m_size, 0);
+    //    m_freeSize = std::exchange(other.m_freeSize, 0);
+    //    m_freeBlockAmount = std::exchange(other.m_freeBlockAmount, 0);
+    //    m_usedBlockAmount = std::exchange(other.m_usedBlockAmount, 0);
+    //    return *this;
+    //}
+
     //faster than best fit, can lead to fragmentation, use when a lot of memory is available and speed is a concern
     template<typename T, typename... Args>
     Allocation<T> allocateFirstFit(Args&&... args)
@@ -194,7 +226,7 @@ public:
             m_data.emplace<T>(block->m_data.offset, std::forward<Args>(args)...);
             return Allocation<T>(block, m_data.get<T>(block->m_data.offset), this);
         }
-        throw std::bad_alloc();
+        return Allocation<T>(nullptr, nullptr, this);
     }
 
     template<typename T, typename... Args>
@@ -223,7 +255,7 @@ public:
             m_data.emplaceRange<T>(count, block->m_data.offset, std::forward<Args>(args)...);
             return ArrayAllocation<T>(block, m_data.get<T>(block->m_data.offset), this);
         }
-        throw std::bad_alloc();
+        return ArrayAllocation<T>(nullptr, nullptr, this);
     }
 
     template<typename T, typename... Args>
@@ -250,7 +282,7 @@ public:
             m_data.emplace<T>(block->m_data.offset, std::forward<Args>(args)...);
             return Allocation<T>(block, m_data.get<T>(block->m_data.offset), this);
         }
-        throw std::bad_alloc();
+        return Allocation<T>(nullptr, nullptr, this);
     }
 
     template<typename T, typename... Args>
@@ -279,7 +311,7 @@ public:
             m_data.emplaceRange<T>(count, block->m_data.offset, std::forward<Args>(args)...);
             return ArrayAllocation<T>(block, m_data.get<T>(block->m_data.offset), this);
         }
-        throw std::bad_alloc();
+        return ArrayAllocation<T>(nullptr, nullptr, this);
     }
 
     size_t getSize() const { return m_size; }

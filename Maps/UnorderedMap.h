@@ -48,6 +48,8 @@ private:
 	};
 
 public:
+	using Pair = MapPairUnordered<Key, Val, Hasher>;
+
 	class Iterator
 	{
 	public:
@@ -70,11 +72,11 @@ public:
 		};
 		~Iterator() = default;
 
-		Iterator(const Iterator& other) = default;
-		Iterator& operator=(const Iterator& other) = default;
+		Iterator(const Iterator&) = default;
+		Iterator& operator=(const Iterator&) = default;
 
-		Iterator(Iterator&& other) = default;
-		Iterator& operator=(Iterator&& other) = default;
+		Iterator(Iterator&&) = default;
+		Iterator& operator=(Iterator&&) = default;
 
 		reference operator*() {
 			return m_node.getKey();
@@ -140,11 +142,11 @@ public:
 		};
 		~ConstIterator() = default;
 
-		ConstIterator(const ConstIterator& other) = default;
-		ConstIterator& operator=(const ConstIterator& other) = default;
+		ConstIterator(const ConstIterator&) = default;
+		ConstIterator& operator=(const ConstIterator&) = default;
 
-		ConstIterator(ConstIterator&& other) = default;
-		ConstIterator& operator=(ConstIterator&& other) = default;
+		ConstIterator(ConstIterator&&) = default;
+		ConstIterator& operator=(ConstIterator&&) = default;
 
 		const_reference operator*() const {
 			return m_node.getKey().getValue();
@@ -184,13 +186,13 @@ public:
 	using const_iterator = ConstIterator;
 	using value_type = MapPairUnordered<Key, Val, Hasher>;
 	using size_type = size_t;
-	using Pair = MapPairUnordered<Key, Val, Hasher>;
 
 private:
 	HashTableImpl m_table;
 
 public:
 	UnorderedMap() = default;
+
 	UnorderedMap(const UnorderedMap&) requires std::is_copy_constructible_v<Pair> ||
 		std::is_copy_assignable_v<Pair> = default;
 	UnorderedMap& operator=(const UnorderedMap&) requires std::is_copy_constructible_v<Pair> ||
@@ -236,40 +238,40 @@ public:
 	}
 
 	template<typename K, typename V>
-	iterator insert(K&& key, V&& val)
+	Iterator insert(K&& key, V&& val)
 		requires (std::is_same_v<std::decay_t<K>, Key>&& std::is_same_v<std::decay_t<V>, Val>)
 	{
-		return iterator(m_table.insert(Pair(std::forward<K>(key), std::forward<V>(val))));
+		return Iterator(m_table.insert(Pair(std::forward<K>(key), std::forward<V>(val))));
 	}
 
-	iterator insert(const Key& key, const Val& val)
+	Iterator insert(const Key& key, const Val& val)
 	{
-		return iterator(m_table.insert(Pair(key, val)));
+		return Iterator(m_table.insert(Pair(key, val)));
 	}
 
-	iterator erase(const Key& key)
+	Iterator erase(const Key& key)
 	{
 		auto node = m_table.find(Pair(key));
 		if (node.index >= node.tableCapacity)
-			return iterator(m_table.end());
-		auto toErase = iterator(node);
+			return Iterator(m_table.end());
+		auto toErase = Iterator(node);
 		auto next = toErase;
 		next++;
 		m_table.erase(toErase.m_node);
 		return next;
 	}
 
-	iterator erase(const iterator& it)
+	Iterator erase(const Iterator& it)
 	{
-		iterator itNext = it;
+		Iterator itNext = it;
 		itNext++;
 		m_table.erase(it.m_node);
 		return itNext;
 	}
 
-	iterator find(const Key& key)
+	Iterator find(const Key& key)
 	{
-		return iterator(m_table.find(Pair(key)));
+		return Iterator(m_table.find(Pair(key)));
 	}
 
 	const_iterator find(const Key& key) const
@@ -287,12 +289,12 @@ public:
 		return m_table.size() == 0;
 	}
 
-	iterator begin() {
-		return iterator(m_table.begin());
+	Iterator begin() {
+		return Iterator(m_table.begin());
 	}
 
-	iterator end() {
-		return iterator(m_table.end());
+	Iterator end() {
+		return Iterator(m_table.end());
 	}
 
 	ConstIterator begin() const {

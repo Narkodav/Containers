@@ -84,8 +84,18 @@ public:
         return *this;
     }
 
-    ListOneSided(ListOneSided&&) = default;
-    ListOneSided& operator=(ListOneSided&&) = default;
+    ListOneSided(ListOneSided&& other) : m_head(other.m_head) { other.m_head = nullptr; };
+
+    ListOneSided& operator=(ListOneSided&& other)
+    {
+        if (this != &other)
+        {
+            clear();
+            m_head = other.m_head;
+            other.m_head = nullptr;
+        }
+        return *this;
+    }
 
     ~ListOneSided() {
         clear();

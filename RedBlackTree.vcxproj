@@ -136,6 +136,7 @@
   <ItemGroup>
     <ClInclude Include="LinearStorage\Memory.h" />
     <ClInclude Include="LinearStorage\MemoryPool.h" />
+    <ClInclude Include="LinearStorage\MemorySlabbed.h" />
     <ClInclude Include="Utilities\ByteArray.h" />
     <ClInclude Include="LinearStorage\Array.h" />
     <ClInclude Include="ContainerBenchmarker.h" />
@@ -160,6 +161,7 @@
   <ItemGroup>
     <ClCompile Include="LinearStorage\Memory.cpp" />
     <ClCompile Include="LinearStorage\MemoryPool.cpp" />
+    <ClCompile Include="LinearStorage\MemorySlabbed.cpp" />
     <ClCompile Include="Utilities\ByteArray.cpp" />
     <ClCompile Include="LinearStorage\Array.cpp" />
     <ClCompile Include="ContainerBenchmarker.cpp" />

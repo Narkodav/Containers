@@ -84,8 +84,18 @@ public:
         return *this;
     }
 
-    ListDoubleSided(ListDoubleSided&&) = default;
-    ListDoubleSided& operator=(ListDoubleSided&&) = default;
+    ListDoubleSided(ListDoubleSided&& other) : m_head(other.m_head) { other.m_head = nullptr; };
+
+    ListDoubleSided& operator=(ListDoubleSided&& other)
+    {
+        if (this != &other)
+        {
+            clear();
+            m_head = other.m_head;
+            other.m_head = nullptr;
+        }
+        return *this;
+    }
 
     ~ListDoubleSided() {
         clear();

@@ -23,6 +23,12 @@ public:
 
 		Iterator(T* ptr) : m_ptr(ptr) {}
 
+		Iterator(const Iterator&) = default;
+		Iterator& operator=(const Iterator&) = default;
+
+		Iterator(Iterator&&) = default;
+		Iterator& operator=(Iterator&&) = default;
+
 		// Dereference
 		reference operator*() { return *m_ptr; }
 		pointer operator->() { return m_ptr; }
@@ -62,7 +68,12 @@ public:
 		using reference = const T&;
 
 		ConstIterator(const T* ptr) : m_ptr(ptr) {}
-		ConstIterator(const Iterator& it) : m_ptr(it.m_ptr) {}
+
+		ConstIterator(const ConstIterator&) = default;
+		ConstIterator& operator=(const ConstIterator&) = default;
+
+		ConstIterator(ConstIterator&&) = default;
+		ConstIterator& operator=(ConstIterator&&) = default;
 
 		reference operator*() { return *m_ptr; }
 		pointer operator->() { return m_ptr; }
