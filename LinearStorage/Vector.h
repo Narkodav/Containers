@@ -96,11 +96,12 @@ public:
 		bool operator>(const ConstIterator& other) const { return m_ptr > other.m_ptr; }
 		bool operator>=(const ConstIterator& other) const { return m_ptr >= other.m_ptr; }
 	};
-
+	using ValueType = typename std::remove_reference_t<T>;
+	using SizeType = size_t;
 	using iterator = Iterator;
 	using const_iterator = ConstIterator;
-	using value_type = typename std::remove_reference_t<T>;
-	using size_type = size_t;
+	using value_type = ValueType;
+	using size_type = SizeType;
 
 	static inline const size_t typeSize = sizeof(T);
 	static inline const size_t typeAlign = alignof(T);
@@ -130,6 +131,45 @@ public:
 		clear();
 		m_data.destroy();
 	}
+
+	Vector(const Vector& other) requires std::is_copy_constructible_v<T> : m_data(other.m_capacity),
+		m_capacity(other.m_capacity), m_size(other.m_size) {
+
+		for (size_t i = 0; i < m_size; ++i)
+			m_data.emplace(other.m_data.get<T>(i * typeSize), i * typeSize);
+	};
+
+	Vector(Vector&& other) : m_data(std::move(other.m_data)),
+		m_capacity(other.m_capacity), m_size(other.m_size) {
+		other.m_capacity = 0;
+		other.m_size = 0;
+	};
+
+	Vector& operator=(const Vector& other) requires std::is_copy_constructible_v<T> {
+		if (this == &other)
+			return *this;
+		clear();
+		m_data.destroy();
+		m_capacity = other.m_capacity;
+		m_size = other.m_size;
+		m_data.allocate(m_capacity);		
+		for (size_t i = 0; i < m_size; ++i)
+			m_data.emplace(other.m_data.get<T>(i * typeSize), i * typeSize);
+		return *this;
+	};
+
+	Vector& operator=(Vector&& other) {
+		if (this == &other)
+			return *this;
+		clear();
+		m_data.destroy();
+		m_capacity = other.m_capacity;
+		m_size = other.m_size;
+		m_data = std::move(other.m_data);
+		other.m_capacity = 0;
+		other.m_size = 0;
+		return *this;
+	};
 
 	void clear() {
 		if (m_size == 0)
@@ -233,6 +273,18 @@ public:
 			reserve(growthFactor * m_capacity);
 		m_data.emplace(std::forward<U>(value), m_size * typeSize);
 		return Iterator(m_data.data<T>() + m_size++);
+	}
+
+	Iterator erase(size_t index)
+	{
+		m_data.erase<T>(index * typeSize);
+		for (size_t j = index + 1; j < m_size; j++)
+		{
+			m_data.emplace(std::move(*(m_data.get<T>(j * typeSize))), (j - 1) * typeSize);
+			m_data.erase<T>(j * typeSize);
+		}
+		m_size--;
+		return Iterator(m_data.data<T>() + index);
 	}
 
 	Iterator erase(const T& value)

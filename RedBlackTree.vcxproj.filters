@@ -69,19 +69,22 @@
     <ClInclude Include="LinearStorage\Vector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LinearStorage\Array.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Utilities\ByteArray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LinearStorage\Memory.h">
+    <ClInclude Include="Memory\Memory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LinearStorage\MemoryPool.h">
+    <ClInclude Include="Memory\MemoryPool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LinearStorage\MemorySlabbed.h">
+    <ClInclude Include="LinearStorage\Array.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory\MemorySlabbed.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LinearStorage\LinearContainer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -134,19 +137,19 @@
     <ClCompile Include="LinearStorage\Vector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LinearStorage\Array.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Utilities\ByteArray.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LinearStorage\Memory.cpp">
+    <ClCompile Include="Memory\Memory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LinearStorage\MemoryPool.cpp">
+    <ClCompile Include="Memory\MemoryPool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LinearStorage\MemorySlabbed.cpp">
+    <ClCompile Include="LinearStorage\Array.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Memory\MemorySlabbed.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

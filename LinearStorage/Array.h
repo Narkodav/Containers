@@ -3,7 +3,9 @@
 #include <memory>
 #include <stdexcept>
 
+// this was done for education purposes, use std::array for anything serious
 template <typename T, size_t m_size>
+	requires std::is_default_constructible_v<T>
 class Array
 {
 public:
@@ -85,9 +87,10 @@ public:
 		bool operator>=(const ConstIterator& other) const { return m_ptr >= other.m_ptr; }
 	};
 
+	using ValueType = typename std::remove_reference_t<T>;
 	using iterator = Iterator;
 	using const_iterator = ConstIterator;
-	using value_type = typename std::remove_reference_t<T>;
+	using value_type = ValueType;
 	using size_type = size_t;
 private:
 	T m_data[m_size];
@@ -95,6 +98,70 @@ private:
 public:
 	Array() = default;
 	~Array() = default;
+
+	Array(const Array& other) noexcept(std::is_nothrow_copy_constructible_v<T>)
+		requires std::is_copy_assignable_v<T>
+	{
+		for (size_t i = 0; i < m_size; ++i)
+			m_data[i] = other.m_data[i];
+	}
+
+	Array(Array&& other) noexcept(std::is_nothrow_move_constructible_v<T>)
+		requires std::is_move_assignable_v<T>
+	{
+		for (size_t i = 0; i < m_size; ++i)
+			m_data[i] = std::move(other.m_data[i]);
+	}
+
+	Array& operator=(const Array& other) noexcept(std::is_nothrow_copy_assignable_v<T>)
+		requires std::is_copy_assignable_v<T>
+	{
+		if(this != &other)
+		{
+			for (size_t i = 0; i < m_size; ++i)
+				m_data[i] = other.m_data[i];
+		}
+		return *this;
+	}
+
+	Array& operator=(Array&& other) noexcept(std::is_nothrow_move_assignable_v<T>)
+		requires std::is_move_assignable_v<T>
+	{
+		if (this != &other)
+		{
+			for (size_t i = 0; i < m_size; ++i)
+				m_data[i] = std::move(other.m_data[i]);
+		}
+		return *this;
+	}
+
+	constexpr Array(const T(&init)[m_size]) noexcept(std::is_nothrow_copy_constructible_v<T>) {
+		for (size_t i = 0; i < m_size; ++i) {
+			m_data[i] = init[i];
+		}
+	}
+
+	template<typename... Args>
+	constexpr Array(Args&&... args)
+		: m_data{ std::forward<Args>(args)... } // This will fail to compile if too many arguments
+	{
+		static_assert(sizeof...(Args) <= m_size, "Too many initializers for Array");
+	}
+
+	constexpr Array& operator=(const T(&init)[m_size]) noexcept(std::is_nothrow_copy_constructible_v<T>) {
+		for (size_t i = 0; i < m_size; ++i) {
+			m_data[i] = init[i];
+		}
+		return *this;
+	}
+
+	template<typename... Args>
+	constexpr Array& operator=(Args&&... args)
+	{
+		static_assert(sizeof...(Args) <= m_size, "Too many initializers for Array");
+		m_data = { std::forward<Args>(args)... };
+		return *this;
+	}
 
 	T& operator[](size_t index) { return m_data[index]; };
 	const T& operator[](size_t index) const { return m_data[index]; };

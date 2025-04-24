@@ -9,14 +9,17 @@
 #include "Trees/AVLTree.h"
 #include "ContainerBenchmarker.h"
 #include "LinearStorage/Vector.h"
-#include "LinearStorage/Memory.h"
-#include "LinearStorage/MemoryPool.h"
+#include "Memory/Memory.h"
+#include "Memory/MemoryPool.h"
+#include "Memory/MemorySlabbed.h"
+#include "LinearStorage/Array.h"
 
 #include <set>
 #include <unordered_set>
 #include <unordered_map>
 #include <thread>
 #include <iostream>
+#include <array>
 
 class Complicated
 {
@@ -123,22 +126,30 @@ int main() {
     //    }
     //}
 
+    //{
+    //    Vector<Memory> memories;
+    //    {
+    //        Vector<Memory::Allocation<int>> integers;
+
+    //        for (int i = 0; i < 30; ++i)
+    //        {
+    //            memories.pushBack(Memory(Memory::MegaByte));
+    //            integers.pushBack(memories[i].allocateBestFit<int>(i));
+    //        }
+
+    //        for (int i = 0; i < 30; ++i)
+    //        {
+    //            std::cout << "Allocated: " << static_cast<int>(integers[i]) << std::endl;
+    //        }
+    //    }
+    //}
+
     {
-        Vector<Memory> memories;
-        {
-            Vector<Memory::Allocation<int>> integers;
-
-            for (int i = 0; i < 30; ++i)
-            {
-                memories.pushBack(Memory(Memory::MegaByte));
-                integers.pushBack(memories[i].allocateBestFit<int>(i));
-            }
-
-            for (int i = 0; i < 30; ++i)
-            {
-                std::cout << "Allocated: " << static_cast<int>(integers[i]) << std::endl;
-            }
-        }
+        MemorySlabbed memory;
+        MemorySlabbed::Allocation<int> alloc1 = memory.allocateFirstFit<int>(10);
+        MemorySlabbed::Allocation<float> alloc2 = memory.allocateFirstFit<float>(1.f);
+        std::cout << "Allocated: " << static_cast<int>(alloc1) << std::endl;
+        std::cout << "Allocated: " << static_cast<float>(alloc2) << std::endl;
     }
 
     if (_CrtDumpMemoryLeaks())

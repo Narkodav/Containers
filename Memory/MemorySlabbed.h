@@ -17,6 +17,8 @@ public:
 				return std::hash<size_t>()(d.size) ^ std::hash<size_t>()(d.alignment);
 			}
 		};
+
+        bool operator==(const TypeData& other) const { return size == other.size && alignment == other.alignment; };
 	};
 
     struct Block {
@@ -39,13 +41,13 @@ public:
     template<typename T>
     class Allocation
     {
-    private:
+    protected:
         Slab* m_slab = nullptr;
         ListDoubleSidedTailed<Block>::Node* m_memoryBlock = nullptr;
         T* m_data = nullptr;
-        Memory* m_owner = nullptr;
+        MemorySlabbed* m_owner = nullptr;
 
-        Allocation(Slab* slab, ListDoubleSidedTailed<Block>::Node* memoryBlock, T* data, Memory* owner) :
+        Allocation(Slab* slab, ListDoubleSidedTailed<Block>::Node* memoryBlock, T* data, MemorySlabbed* owner) :
             m_slab(slab), m_memoryBlock(memoryBlock), m_data(data), m_owner(owner) {
         };
 
@@ -55,7 +57,7 @@ public:
         ~Allocation()
         {
             if (m_owner != nullptr)
-                m_owner->deallocate(m_memoryBlock, m_data);
+                m_owner->deallocate(m_memoryBlock, m_data, m_slab);
         }
 
         Allocation(Allocation&& other) noexcept :
@@ -106,18 +108,19 @@ public:
         void deallocate()
         {
             if (m_owner != nullptr)
-                m_owner->deallocate(m_memoryBlock, m_data);
+                m_owner->deallocate(m_memoryBlock, m_data, m_slab);
         }
 
         bool isAllocated() const { return m_owner != nullptr; };
 
-        friend class Memory;
+        friend class MemorySlabbed;
     };
 
     template<typename T>
     class ArrayAllocation : public Allocation<T>
     {
     private:
+        using Allocation<T>::m_slab;
         using Allocation<T>::m_data;
         using Allocation<T>::m_memoryBlock;
         using Allocation<T>::m_owner;
@@ -142,7 +145,7 @@ public:
         T* data() { return m_data; };
         const T* data() const { return m_data; };
 
-        friend class Memory;
+        friend class MemorySlabbed;
     };
 
 private:
@@ -203,6 +206,48 @@ public:
         slab.m_data.emplace<T>(block->m_data.offset, std::forward<Args>(args)...);
         return Allocation<T>(&slab, block, slab.m_data.get<T>(block->m_data.offset), this);
 	}
+
+    template<typename T, typename... Args>
+    Allocation<T> allocateArrayFirstFit(size_t count, Args&&... args)
+    {
+        if (sizeof(T) == 0) {
+            throw std::invalid_argument("Cannot allocate zero bytes");
+        }
+
+        TypeData typeData = { sizeof(T), alignof(T) };
+
+        auto slabs = m_slabMap.find(typeData);
+
+        if (slabs == m_slabMap.end())
+            slabs = m_slabMap.insert(typeData, Vector<Slab>());
+        else
+        {
+            for (auto& slab : slabs->getValue())
+            {
+                auto block = allocateBlockFirstFit(typeData.size * count, typeData.alignment,
+                    slab.m_freeBlocks, slab.m_usedBlocks, slab.m_freeSize, slab.m_freeBlockAmount,
+                    slab.m_usedBlockAmount);
+
+                if (block != nullptr)
+                {
+                    slab.m_data.emplace<T>(block->m_data.offset, std::forward<Args>(args)...);
+                    return ArrayAllocation<T>(&slab, block, slab.m_data.get<T>(block->m_data.offset), this);
+                }
+            }
+        }
+        slabs->getValue().pushBack(Slab{ ByteArray(SLAB_SIZE * sizeof(T)),
+            ListDoubleSidedTailed<Block>{},
+            ListDoubleSidedTailed<Block>{},
+            SLAB_SIZE * sizeof(T), SLAB_SIZE * sizeof(T), 1, 0 });
+        auto& slab = slabs->getValue()[0];
+        slab.m_freeBlocks.insertFront(Block{ 0, SLAB_SIZE * sizeof(T) });
+
+        auto block = allocateBlockFirstFit(typeData.size * count, typeData.alignment,
+            slab.m_freeBlocks, slab.m_usedBlocks, slab.m_freeSize, slab.m_freeBlockAmount,
+            slab.m_usedBlockAmount);
+        slab.m_data.emplace<T>(block->m_data.offset, std::forward<Args>(args)...);
+        return ArrayAllocation<T>(&slab, block, slab.m_data.get<T>(block->m_data.offset), this);
+    }
 
 private:
 
