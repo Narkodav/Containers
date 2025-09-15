@@ -1,18 +1,19 @@
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 
+//#include "Sets/Set.h"
+//#include "Sets/UnorderedSet.h"
+//#include "Maps/Map.h"
+//#include "Maps/UnorderedMap.h"
+//#include "Trees/AVLTree.h"
+//#include "ContainerBenchmarker.h"
+//#include "LinearStorage/Vector.h"
+//#include "Memory/Memory.h"
+//#include "Memory/MemoryPool.h"
+//#include "Memory/MemorySlabbed.h"
+//#include "LinearStorage/Array.h"
 
-#include "Sets/Set.h"
-#include "Sets/UnorderedSet.h"
-#include "Maps/Map.h"
-#include "Maps/UnorderedMap.h"
-#include "Trees/AVLTree.h"
-#include "ContainerBenchmarker.h"
 #include "LinearStorage/Vector.h"
-#include "Memory/Memory.h"
-#include "Memory/MemoryPool.h"
-#include "Memory/MemorySlabbed.h"
-#include "LinearStorage/Array.h"
 
 #include <set>
 #include <unordered_set>
@@ -20,6 +21,7 @@
 #include <thread>
 #include <iostream>
 #include <array>
+#include <vector>
 
 class Complicated
 {
@@ -73,83 +75,32 @@ struct std::alignment_of<StrangeAlign> {
     static constexpr size_t value = 6;
 };
 
+class Test
+{
+public:
+    int x, y;
+
+    Test(int x, int y) : x(x), y(y) {};
+    Test(const Test&) = delete;
+    Test& operator=(const Test&) = delete;
+    Test(Test&&) = delete;
+    Test& operator=(Test&&) = delete;
+};
+
 int main() {
 
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
-    ////Run benchmarks with different sizes
-    //std::cout << "Testing Set..." << std::endl;
-    //std::cout << "Running small benchmark, 100 operations...\n";
-    //ContainerBenchmarker::compareContainers<
-    //    int, std::vector<int>, Vector<int>>
-    //    (100, "std::set", "AVLSet");
-
-    //std::cout << "\nRunning medium benchmark, 10000 operations...\n";
-    //ContainerBenchmarker::compareContainers<
-    //    int, std::vector<int>, Vector<int>>
-    //    (10000, "std::set", "AVLSet");
-
-    //std::cout << "\nRunning large benchmark, 1000000 operations...\n";
-    //ContainerBenchmarker::compareContainers<
-    //    int, std::vector<int>, Vector<int>>
-    //    (100000, "std::set", "AVLSet");
-
-    //{
-    //    Vector<StrangeAlign> vec;
-
-    //    vec.reserve(3);
-    //    for (int i = 0; i < 100; ++i)
-    //    {
-    //        vec.pushBack(i);
-    //    }
-
-    //    for (int i = 0; i < 100; ++i)
-    //    {
-    //        vec.erase(i);
-    //    }
-
-    //    vec.resize(10);
-    //    vec.resize(10);
-    //    vec.resize(20);
-    //    vec.resize(10);
-    //}
-
-    //{
-    //    Memory memory(Memory::GigaByte * 10);
-
-    //    {
-    //        int f = 2;
-    //        auto alloc = memory.allocateArrayBestFit<int>(10, f);
-    //        alloc[4] = 5;
-    //        for(int i = 0; i < 10; ++i)
-    //            std::cout << "Allocated: " << alloc[i] << std::endl;
-    //    }
-    //}
-
-    //{
-    //    Vector<Memory> memories;
-    //    {
-    //        Vector<Memory::Allocation<int>> integers;
-
-    //        for (int i = 0; i < 30; ++i)
-    //        {
-    //            memories.pushBack(Memory(Memory::MegaByte));
-    //            integers.pushBack(memories[i].allocateBestFit<int>(i));
-    //        }
-
-    //        for (int i = 0; i < 30; ++i)
-    //        {
-    //            std::cout << "Allocated: " << static_cast<int>(integers[i]) << std::endl;
-    //        }
-    //    }
-    //}
-
     {
-        MemorySlabbed memory;
-        MemorySlabbed::Allocation<int> alloc1 = memory.allocateFirstFit<int>(10);
-        MemorySlabbed::Allocation<float> alloc2 = memory.allocateFirstFit<float>(1.f);
-        std::cout << "Allocated: " << static_cast<int>(alloc1) << std::endl;
-        std::cout << "Allocated: " << static_cast<float>(alloc2) << std::endl;
+        Containers::Vector<int> vector = { 1, 2, 3, 4, 5 };
+
+        auto data = vector.release();
+
+        for (size_t i = 0; i < data.size; ++i)
+        {
+            data.allocator.destroy(data.ptr + i);
+        }
+        data.allocator.deallocate(data.ptr);
     }
 
     if (_CrtDumpMemoryLeaks())

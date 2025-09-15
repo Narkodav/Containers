@@ -134,6 +134,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Utilities\Allocator.h" />
     <ClInclude Include="LinearStorage\Array.h" />
     <ClInclude Include="LinearStorage\LinearContainer.h" />
     <ClInclude Include="Memory\Memory.h" />

@@ -4,219 +4,220 @@
 #include <concepts>
 #include <stdexcept>
 
-template<typename T>
-class ListOneSided
-{
-public:
-    using ValueType = T;
+namespace Containers {
+    template<typename T>
+    class ListOneSided
+    {
+    public:
+        using ValueType = T;
 
-    struct Node {
-        ValueType m_data;
-        Node* m_next;
+        struct Node {
+            ValueType m_data;
+            Node* m_next;
 
-        Node() : m_data(ValueType()), m_next(nullptr) {}
+            Node() : m_data(ValueType()), m_next(nullptr) {}
 
-        template<typename U>
-            requires std::is_same_v<ValueType, std::decay_t<U>>
-        Node(U&& value) : m_data(std::forward<U>(value)), m_next(nullptr) {}
+            template<typename U>
+                requires std::is_same_v<ValueType, std::decay_t<U>>
+            Node(U&& value) : m_data(std::forward<U>(value)), m_next(nullptr) {}
 
-        template<typename U>
-            requires std::is_same_v<ValueType, std::decay_t<U>>
-        Node& operator=(U&& value) {
-            m_data = std::forward<U>(value);
-            return *this;
+            template<typename U>
+                requires std::is_same_v<ValueType, std::decay_t<U>>
+            Node& operator=(U&& value) {
+                m_data = std::forward<U>(value);
+                return *this;
+            };
+
+            template<typename U>
+                requires std::is_same_v<ValueType, std::decay_t<U>>
+            static Node* copyConstruct(U&& data)
+            {
+                Node* newNode;
+                if constexpr (std::is_rvalue_reference_v<decltype(data)>)
+                {
+                    if constexpr (std::is_move_constructible_v<T>)
+                        newNode = new Node(std::move(data));
+                    else if constexpr (std::is_move_assignable_v<T>)
+                    {
+                        newNode = new Node();
+                        newNode->m_data = std::move(data);
+                    }
+                    else static_assert(false && "Cannot move a type without move constructor or assignment defined");
+                }
+                else // lvalue
+                {
+                    if constexpr (std::is_copy_constructible_v<T>)
+                        newNode = new Node(data);
+                    else if constexpr (std::is_copy_assignable_v<T>)
+                    {
+                        newNode = new Node();
+                        newNode->m_data = data;
+                    }
+                    else static_assert(false && "Cannot copy a type without copy constructor or assignment defined");
+                }
+                return newNode;
+            }
+
         };
-                
-        template<typename U>
-            requires std::is_same_v<ValueType, std::decay_t<U>>
-        static Node* copyConstruct(U&& data)
+
+    private:
+        Node* m_head = nullptr;
+
+    public:
+        // Iterator class to handle traversal
+
+        ListOneSided() = default;
+
+        ListOneSided(const ListOneSided& other)
+            requires std::is_copy_constructible_v<T> || std::is_copy_assignable_v<T>
         {
-            Node* newNode;
-            if constexpr (std::is_rvalue_reference_v<decltype(data)>)
-            {
-                if constexpr (std::is_move_constructible_v<T>)
-                    newNode = new Node(std::move(data));
-                else if constexpr (std::is_move_assignable_v<T>)
-                {
-                    newNode = new Node();
-                    newNode->m_data = std::move(data);
-                }
-                else static_assert(false && "Cannot move a type without move constructor or assignment defined");
-            }
-            else // lvalue
-            {
-                if constexpr (std::is_copy_constructible_v<T>)
-                    newNode = new Node(data);
-                else if constexpr (std::is_copy_assignable_v<T>)
-                {
-                    newNode = new Node();
-                    newNode->m_data = data;
-                }
-                else static_assert(false && "Cannot copy a type without copy constructor or assignment defined");
-            }
-            return newNode;
-        }
-
-    };
-
-private:
-    Node* m_head = nullptr;
-
-public:
-    // Iterator class to handle traversal
-
-    ListOneSided() = default;
-
-    ListOneSided(const ListOneSided& other)
-        requires std::is_copy_constructible_v<T> || std::is_copy_assignable_v<T>
-    {
-        copyList(other.m_head);
-    }
-
-    ListOneSided& operator=(const ListOneSided& other)
-        requires std::is_copy_constructible_v<T> || std::is_copy_assignable_v<T>
-    {
-        if(&other != this)
-        {
-            clear();
             copyList(other.m_head);
         }
-        return *this;
-    }
 
-    ListOneSided(ListOneSided&& other) : m_head(other.m_head) { other.m_head = nullptr; };
-
-    ListOneSided& operator=(ListOneSided&& other)
-    {
-        if (this != &other)
+        ListOneSided& operator=(const ListOneSided& other)
+            requires std::is_copy_constructible_v<T> || std::is_copy_assignable_v<T>
         {
-            clear();
-            m_head = other.m_head;
-            other.m_head = nullptr;
-        }
-        return *this;
-    }
-
-    ~ListOneSided() {
-        clear();
-    }
-
-    void clear()
-    {
-        Node* current = m_head;
-        Node* next = nullptr;
-        while (current != nullptr) {
-            next = current->m_next;
-            delete current;
-            current = next;
-        }
-        m_head = nullptr;
-    }
-
-    template<typename U>
-        requires std::is_same_v<ValueType, std::decay_t<U>>
-    void insert(Node* current, U&& value) //inserts the element after current
-    {
-        if (current == nullptr) {
-            throw std::runtime_error("Cannot insert after null node");
-        }
-        Node* next = current->m_next;
-        Node* newNext = Node::copyConstruct(std::forward<U>(value));
-        current->m_next = newNext;
-        newNext->m_next = next;
-    }
-
-    template<typename U>
-        requires std::is_same_v<ValueType, std::decay_t<U>>
-    void insertBack(U&& value) //inserts the element to the back
-    {
-        if(m_head == nullptr)
-        {
-            m_head = Node::copyConstruct(std::forward<U>(value));
-            return;
-        }
-
-        Node* current = m_head;
-        while (current->m_next != nullptr) {
-            current = current->m_next;
-        }
-
-        current->m_next = Node::copyConstruct(std::forward<U>(value));
-    }
-
-    template<typename U>
-        requires std::is_same_v<ValueType, std::decay_t<U>>
-    void insertFront(U&& value) //inserts the element to the front
-    {
-        Node* newHead = Node::copyConstruct(std::forward<U>(value));
-        newHead->m_next = m_head;
-        m_head = newHead;
-    }
-
-    void deleteNode(Node* current) //deletes the current element
-    {
-        if (current == nullptr) {
-            throw std::runtime_error("Cannot delete a null node");
-        }
-
-        if (m_head == nullptr) {
-            throw std::runtime_error("List is empty");
-        }
-
-        if (current == m_head) {
-            m_head = current->m_next;
-        }
-        else
-        {
-            Node* prior = m_head;
-            while (prior->m_next != current) {
-                prior = prior->m_next;
+            if (&other != this)
+            {
+                clear();
+                copyList(other.m_head);
             }
-            prior->m_next = current->m_next;
-        }
-        delete current;
-    }
-
-    void deleteBack() //deletes the element from the back
-    {
-        if (m_head == nullptr) {
-            throw std::runtime_error("List is empty");
+            return *this;
         }
 
-        Node* current = m_head;
-        if (current->m_next != nullptr)
+        ListOneSided(ListOneSided&& other) : m_head(other.m_head) { other.m_head = nullptr; };
+
+        ListOneSided& operator=(ListOneSided&& other)
         {
-            Node* prior = nullptr;
-            do {
-                prior = current;
+            if (this != &other)
+            {
+                clear();
+                m_head = other.m_head;
+                other.m_head = nullptr;
+            }
+            return *this;
+        }
+
+        ~ListOneSided() {
+            clear();
+        }
+
+        void clear()
+        {
+            Node* current = m_head;
+            Node* next = nullptr;
+            while (current != nullptr) {
+                next = current->m_next;
+                delete current;
+                current = next;
+            }
+            m_head = nullptr;
+        }
+
+        template<typename U>
+            requires std::is_same_v<ValueType, std::decay_t<U>>
+        void insert(Node* current, U&& value) //inserts the element after current
+        {
+            if (current == nullptr) {
+                throw std::runtime_error("Cannot insert after null node");
+            }
+            Node* next = current->m_next;
+            Node* newNext = Node::copyConstruct(std::forward<U>(value));
+            current->m_next = newNext;
+            newNext->m_next = next;
+        }
+
+        template<typename U>
+            requires std::is_same_v<ValueType, std::decay_t<U>>
+        void insertBack(U&& value) //inserts the element to the back
+        {
+            if (m_head == nullptr)
+            {
+                m_head = Node::copyConstruct(std::forward<U>(value));
+                return;
+            }
+
+            Node* current = m_head;
+            while (current->m_next != nullptr) {
                 current = current->m_next;
-            } while (current->m_next != nullptr);
-            prior->m_next = nullptr;
-        }
-        else m_head = nullptr;
-        delete current;
-    }
+            }
 
-    void deleteFront() //deletes the head
-    {
-        if (m_head == nullptr) {
-            throw std::runtime_error("List is empty");
+            current->m_next = Node::copyConstruct(std::forward<U>(value));
         }
 
-        Node* newHead = m_head->m_next;
-        delete m_head;
-        m_head = newHead;
-    }
+        template<typename U>
+            requires std::is_same_v<ValueType, std::decay_t<U>>
+        void insertFront(U&& value) //inserts the element to the front
+        {
+            Node* newHead = Node::copyConstruct(std::forward<U>(value));
+            newHead->m_next = m_head;
+            m_head = newHead;
+        }
 
-    Node* getFront() { return m_head; };
+        void deleteNode(Node* current) //deletes the current element
+        {
+            if (current == nullptr) {
+                throw std::runtime_error("Cannot delete a null node");
+            }
 
-    const Node* getFront() const { return m_head; };
+            if (m_head == nullptr) {
+                throw std::runtime_error("List is empty");
+            }
 
-    static Node* iterateNext(Node* current) { return current->m_next; };
+            if (current == m_head) {
+                m_head = current->m_next;
+            }
+            else
+            {
+                Node* prior = m_head;
+                while (prior->m_next != current) {
+                    prior = prior->m_next;
+                }
+                prior->m_next = current->m_next;
+            }
+            delete current;
+        }
 
-    static const Node* iterateNext(const Node* current) { return current->m_next; };
+        void deleteBack() //deletes the element from the back
+        {
+            if (m_head == nullptr) {
+                throw std::runtime_error("List is empty");
+            }
 
-    bool empty() const { return m_head == nullptr; };
+            Node* current = m_head;
+            if (current->m_next != nullptr)
+            {
+                Node* prior = nullptr;
+                do {
+                    prior = current;
+                    current = current->m_next;
+                } while (current->m_next != nullptr);
+                prior->m_next = nullptr;
+            }
+            else m_head = nullptr;
+            delete current;
+        }
+
+        void deleteFront() //deletes the head
+        {
+            if (m_head == nullptr) {
+                throw std::runtime_error("List is empty");
+            }
+
+            Node* newHead = m_head->m_next;
+            delete m_head;
+            m_head = newHead;
+        }
+
+        Node* getFront() { return m_head; };
+
+        const Node* getFront() const { return m_head; };
+
+        static Node* iterateNext(Node* current) { return current->m_next; };
+
+        static const Node* iterateNext(const Node* current) { return current->m_next; };
+
+        bool empty() const { return m_head == nullptr; };
 
     private:
 
@@ -228,7 +229,7 @@ public:
                 return;
             }
 
-            m_head = Node::copyConstruct(otherHead->m_data);         
+            m_head = Node::copyConstruct(otherHead->m_data);
 
             const Node* currentOther = otherHead->m_next;
             Node* currentThis = nullptr;
@@ -243,5 +244,6 @@ public:
             }
         }
 
-};
+    };
 
+}

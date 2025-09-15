@@ -1,13 +1,23 @@
 #pragma once
 #include "Utilities/ByteArray.h"
+#include "Utilities/Allocator.h"
+
 #include <memory>
 #include <stdexcept>
+#include <vector>
+#include <initializer_list>
 
-template <typename T, size_t initialCapacity = 16>
-class Vector
-{
-public:
+namespace Containers {
+// WARNING: This Vector is NOT compatible with std::vector by design
+// Use Vector as a complete replacement, not alongside std::vector
+// Provides ownership transfer via release() which std::vector cannot do
+
+	template <typename T, typename Alloc = Allocator<T>>
+	class Vector
+	{
+	public:
 	static constexpr float growthFactor = 1.618f;
+	static constexpr size_t initialCapacity = 16;
 
 	// Iterator class definitions
 	class Iterator {
@@ -106,55 +116,79 @@ public:
 	static inline const size_t typeSize = sizeof(T);
 	static inline const size_t typeAlign = alignof(T);
 
-private:
-	ByteArray m_data;
+	private:
+	T* m_data;
 	size_t m_size = 0;
 	size_t m_capacity = 0;
+	Alloc m_allocator;
 
-public:
-	Vector() : m_data(initialCapacity * typeSize), m_capacity(initialCapacity) {};
-	Vector(size_t size) : m_data(initialCapacity * typeSize),
+	public:
+	Vector() : m_data(m_allocator.allocate(initialCapacity)), m_capacity(initialCapacity) {};
+	Vector(size_t size) : m_data(m_allocator.allocate(initialCapacity)),
 		m_capacity(initialCapacity), m_size(0) {
 		resize(size);
 	};
-	Vector(size_t size, const T& value) : m_data(initialCapacity * typeSize),
+	Vector(size_t size, const T& value) : m_data(m_allocator.allocate(initialCapacity)),
 		m_capacity(initialCapacity), m_size(0) {
 		if (size > m_capacity)
 			reserve(growthFactor * (size + m_capacity - 1));
 		m_size = size;
 		for (size_t i = 0; i < size; ++i)
-			m_data.emplace(value, i * typeSize);
+			m_allocator.construct(m_data + i, value);
 	};
 
 	~Vector()
 	{
 		clear();
-		m_data.destroy();
+		m_allocator.deallocate(m_data);
 	}
 
-	Vector(const Vector& other) requires std::is_copy_constructible_v<T> : m_data(other.m_capacity),
-		m_capacity(other.m_capacity), m_size(other.m_size) {
+	Vector(std::initializer_list<T> list) : m_capacity(list.size()), m_size(0),
+		m_data(m_allocator.allocate(list.size())) {
+		for (auto& elem : list)
+			m_allocator.construct(m_data + m_size++, elem);
+	};
 
+	Vector& operator=(std::initializer_list<T> list) {
+		clear();
+		m_allocator.deallocate(m_data);
+		m_capacity = list.size();
+		m_size = 0;
+		m_data = m_allocator.allocate(m_capacity);
+		for (auto& elem : list)
+			m_allocator.construct(m_data + m_size++, elem);
+		return *this;
+	};
+
+	// EXPLICITLY DELETED: No std::vector interoperability
+	Vector(const std::vector<T>&) = delete;
+	Vector(std::vector<T>&&) = delete;
+	Vector& operator=(const std::vector<T>&) = delete;
+	Vector& operator=(std::vector<T>&&) = delete;
+
+	Vector(const Vector& other) requires std::is_copy_constructible_v<T> :
+	m_data(m_allocator.allocate(other.m_capacity)), m_capacity(other.m_capacity), m_size(other.m_size) {
 		for (size_t i = 0; i < m_size; ++i)
-			m_data.emplace(other.m_data.get<T>(i * typeSize), i * typeSize);
+			m_allocator.construct(m_data + i, other.m_data[i]);
 	};
 
 	Vector(Vector&& other) : m_data(std::move(other.m_data)),
-		m_capacity(other.m_capacity), m_size(other.m_size) {
+		m_capacity(other.m_capacity), m_size(other.m_size), m_allocator(std::move(other.m_allocator)){
 		other.m_capacity = 0;
 		other.m_size = 0;
+		other.m_allocator = Alloc();
 	};
 
 	Vector& operator=(const Vector& other) requires std::is_copy_constructible_v<T> {
 		if (this == &other)
 			return *this;
 		clear();
-		m_data.destroy();
+		m_allocator.deallocate(m_data);
 		m_capacity = other.m_capacity;
 		m_size = other.m_size;
-		m_data.allocate(m_capacity);		
+		m_data = m_allocator.allocate(m_capacity);
 		for (size_t i = 0; i < m_size; ++i)
-			m_data.emplace(other.m_data.get<T>(i * typeSize), i * typeSize);
+			m_allocator.construct(m_data + i, other.m_data[i]);
 		return *this;
 	};
 
@@ -162,19 +196,22 @@ public:
 		if (this == &other)
 			return *this;
 		clear();
-		m_data.destroy();
+		m_allocator.deallocate(m_data);
 		m_capacity = other.m_capacity;
 		m_size = other.m_size;
 		m_data = std::move(other.m_data);
+		m_allocator = std::move(other.m_allocator);
 		other.m_capacity = 0;
 		other.m_size = 0;
+		other.m_allocator = Alloc();
 		return *this;
 	};
 
 	void clear() {
 		if (m_size == 0)
 			return;
-		m_data.erase<T>(m_size, 0);
+		for (size_t i = 0; i < m_size; ++i)
+			m_allocator.destroy(m_data + i);
 		m_size = 0;
 	};
 
@@ -182,32 +219,59 @@ public:
 	void pushBack(U&& data)
 	{
 		if (m_size >= m_capacity)
-			reserve(growthFactor * m_capacity);
-		m_data.emplace(std::forward<U>(data), m_size * typeSize);
-		m_size++;
+			reserve(growthFactor * (m_capacity + 1));
+
+		m_allocator.construct(m_data + m_size, std::forward<U>(data));
+		++m_size;
 	}
 
 	void popBack()
 	{
 		if (m_size == 0)
 			throw std::runtime_error("Vector is empty");
-		m_data.erase<T>((m_size - 1) * typeSize);
-		m_size--;
+		--m_size;
+		m_allocator.destroy(m_data + m_size);
 	}
 
-	T& operator[](size_t index) { return *m_data.get<T>(index * typeSize); };
-	const T& operator[](size_t index) const { return *m_data.get<T>(index * typeSize); };
+	T& operator[](size_t index) { return m_data[index]; };
+	const T& operator[](size_t index) const { return m_data[index]; };
 	const size_t size() const { return m_size; };
 	const bool empty() const { return m_size == 0; };
 	const size_t capacity() const { return m_capacity; };
-	const T* data() const { return m_data.get<T>(0); };
-	T* data() { return m_data.get<T>(0); }
+	const T* data() const { return m_data; };
+
+	T& back() { return m_data[m_size - 1]; };
+	const T& back() const { return m_data[m_size - 1]; };
+	T& front() { return m_data[0]; };
+	const T& front() const { return m_data[0]; };
+
+	// OWNERSHIP TRANSFER: What std::vector cannot do
+	struct ReleaseData {
+		T* ptr;
+		size_t size;
+		size_t capacity;
+		Alloc allocator;
+	};
+
+	ReleaseData release() {
+		ReleaseData data;
+		data.ptr = m_data;
+		data.size = m_size;
+		data.capacity = m_capacity;
+		data.allocator = std::move(m_allocator);
+
+		m_allocator = Alloc();
+		m_data = m_allocator.allocate(initialCapacity);
+		m_size = 0;
+		m_capacity = initialCapacity;
+		return data;
+	}
 
 	void reserve(size_t capacity) {
 		if (capacity == m_capacity)
 			return;
-		ByteArray oldData(m_data.data());
-		m_data.allocate(capacity * typeSize);
+		auto oldData = m_data;
+		m_data = m_allocator.allocate(capacity);
 
 		m_capacity = capacity;
 		if (m_capacity < m_size)
@@ -215,16 +279,10 @@ public:
 
 		for (size_t i = 0; i < m_size; i++)
 		{
-			if constexpr (std::is_move_assignable_v<T>) {
-				m_data.emplace(std::move(*(oldData.get<T>(i * typeSize))), i * typeSize);
-			}
-			else if constexpr (std::is_copy_assignable_v<T>) {
-				m_data.emplace(*(oldData.get<T>(i * typeSize)), i * typeSize);
-			}
-			else static_assert(false, "Key type must be copy or move assignable");
-			oldData.erase<T>(i * typeSize);
+			construct(m_data + i, oldData[i]);
+			m_allocator.destroy(oldData + i);
 		}
-		oldData.destroy();
+		m_allocator.deallocate(oldData);
 	};
 
 	void resize(size_t size) {
@@ -235,84 +293,176 @@ public:
 			reserve(growthFactor * (size + m_capacity - 1));
 
 			for (size_t i = m_size; i < size; i++)
-			{
-				if constexpr (std::is_move_assignable_v<T>) {
-					m_data.emplace(std::move(T()), i * typeSize);
-				}
-				else if constexpr (std::is_copy_assignable_v<T>) {
-					m_data.emplace(T(), i * typeSize);
-				}
-				else static_assert(false, "Key type must be copy or move assignable");
-			}			
+				m_allocator.construct(m_data + i);
 		}
 		else if(size > m_size)
 		{
 			for (size_t i = m_size; i < size; i++)
-			{
-				if constexpr (std::is_move_assignable_v<T>) {
-					m_data.emplace(std::move(T()), i * typeSize);
-				}
-				else if constexpr (std::is_copy_assignable_v<T>) {
-					m_data.emplace(T(), i * typeSize);
-				}
-				else static_assert(false, "Key type must be copy or move assignable");
-			}
+				m_allocator.construct(m_data + i);
 		}
 		else
 		{
 			for (size_t i = size; i < m_size; i++)
-				m_data.erase<T>(i * typeSize);
+				m_allocator.destroy(m_data + i);
 		}
 		m_size = size;
 	};
 
-	template<typename U>
-	Iterator insert(U&& value)
+	template<typename U, typename ItType>
+	Iterator insert(ItType pos, U&& value) requires
+		std::is_same_v<ItType, Iterator> ||
+		std::is_same_v<ItType, ConstIterator>
 	{
 		if (m_size >= m_capacity)
-			reserve(growthFactor * m_capacity);
-		m_data.emplace(std::forward<U>(value), m_size * typeSize);
-		return Iterator(m_data.data<T>() + m_size++);
+			reserve(growthFactor * (m_capacity + 1));
+
+		construct(m_data + m_size, m_data[m_size - 1]);
+		Iterator it = begin() + m_size - 1;
+		for (; it != pos; --it)
+			assign(*it, *(it - 1));
+
+		*it = std::forward<U>(value);
+		++m_size;
+		return it;
 	}
 
-	Iterator erase(size_t index)
+	template<typename U, typename ItType>
+	Iterator insert(ItType pos, size_t count, U&& value) requires
+		std::is_same_v<ItType, Iterator> ||
+		std::is_same_v<ItType, ConstIterator>
 	{
-		m_data.erase<T>(index * typeSize);
-		for (size_t j = index + 1; j < m_size; j++)
+		if (count == 0)
+			return Iterator(pos);
+
+		if (m_size + count > m_capacity)
 		{
-			m_data.emplace(std::move(*(m_data.get<T>(j * typeSize))), (j - 1) * typeSize);
-			m_data.erase<T>(j * typeSize);
+			size_t offset = pos - begin();
+			reserve(growthFactor * (m_capacity + count));
+			pos = begin() + offset;
 		}
+
+		Iterator it = end();
+		for (; it < end() + count; ++it)
+			m_allocator.construct(&(*it));
+
+		size_t rightSize = end() - pos;
+		for (; it > pos + count - 1; --it)
+			assign(*it, *(it - count));
+
+		it = pos;
+		for (; it < pos + count; ++it)
+			*it = std::forward<U>(value);
+
+		m_size += count;
+		return Iterator(pos);
+	}
+
+	template<typename ItType, typename InputIt>
+	Iterator insert(ItType pos, InputIt first, InputIt last) requires
+		std::is_same_v<ItType, Iterator> ||
+		std::is_same_v<ItType, ConstIterator>
+	{
+		if (first > last)
+			throw std::runtime_error("Invalid range");
+		size_t count = last - first;
+		if (count == 0)
+			return Iterator(pos);
+		if (m_size + count > m_capacity)
+		{
+			size_t offset = pos - begin();
+			reserve(growthFactor * (m_capacity + count));
+			pos = begin() + offset;
+		}
+
+		Iterator it = end();
+		for (; it < end() + count; ++it)
+			m_allocator.construct(&(*it));
+
+		size_t rightSize = end() - pos;
+		for (; it > pos + count - 1; --it)
+			assign(*it, *(it - count));
+
+		it = pos;
+		for (; it < pos + count; ++it, ++first)
+			assign(*it, *first);
+
+		m_size += count;
+		return Iterator(pos);
+	}
+
+	template<typename ItType>
+	Iterator insert(ItType pos, std::initializer_list<T> list) requires
+		std::is_same_v<ItType, Iterator> ||
+		std::is_same_v<ItType, ConstIterator>
+	{
+		size_t count = list.size();
+		if (count == 0)
+			return Iterator(pos);
+		if (m_size + count > m_capacity)
+		{
+			size_t offset = pos - begin();
+			reserve(growthFactor * (m_capacity + count));
+			pos = begin() + offset;
+		}
+
+		Iterator it = end();
+		for (; it < end() + count; ++it)
+			m_allocator.construct(&(*it));
+
+		size_t rightSize = end() - pos;
+		for (; it > pos + count - 1; --it)
+			assign(*it, *(it - count));
+			
+		it = pos;
+		auto listIt = list.begin();
+		for (; it < pos + count; ++it, ++listIt)
+			*it = *listIt;
+
+		m_size += count;
+		return Iterator(pos);
+	}
+
+	template <typename ItType>
+	Iterator erase(ItType pos) requires
+		std::is_same_v<ItType, Iterator> ||
+		std::is_same_v<ItType, ConstIterator>
+	{
+		Iterator it = pos;
+		for (; it < end() - 1; ++it)
+			assign(*it, *(it + 1));
 		m_size--;
-		return Iterator(m_data.data<T>() + index);
+		m_allocator.destroy(m_data + m_size);
+		return Iterator(pos);
 	}
 
-	Iterator erase(const T& value)
+	template <typename ItType>
+	Iterator erase(ItType first, ItType last) requires
+		std::is_same_v<ItType, Iterator> ||
+		std::is_same_v<ItType, ConstIterator>
 	{
-		for (size_t i = 0; i < m_size; i++)
+		if (first > last)
+			throw std::runtime_error("Invalid range");
+		Iterator it = first;
+		size_t span = last - first;
+		for (; it < end() - span; ++it)
 		{
-			if (*(m_data.get<T>(i * typeSize)) == value)
-			{
-				m_data.erase<T>(i * typeSize);
-				for (size_t j = i + 1; j < m_size; j++)
-				{
-					m_data.emplace(std::move(*(m_data.get<T>(j * typeSize))), (j - 1) * typeSize);
-					m_data.erase<T>(j * typeSize);
-				}
-				m_size--;
-				return Iterator(m_data.data<T>() + i);
-			}
+			assign(*it, *(it + span));
+			m_allocator.destroy(&(*(it + span)));
 		}
 
-		return end();
+		for (; it < last; ++it)
+			m_allocator.destroy(&(*(it)));
+
+		m_size -= span;
+		return Iterator(first);
 	}
 
 	Iterator find(const T& value)
 	{
 		for (size_t i = 0; i < m_size; i++)
 		{
-			if (*(m_data.get<T>(i * typeSize)) == value)
-				return Iterator(m_data.data<T>() + i);
+			if (m_data[i] == value)
+				return Iterator(m_data + i);
 		}
 		return end();
 	}
@@ -321,16 +471,40 @@ public:
 	{
 		for(size_t i = 0; i < m_size; i++)
 		{
-			if (*(m_data.get<T>(i * typeSize)) == value)
-				return ConstIterator(m_data.data<T>() + i);
+			if (m_data[i] == value)
+				return ConstIterator(m_data + i);
 		}
 		return cend();
 	}
 
-	Iterator begin() { return Iterator(m_data.data<T>()); }
-	Iterator end() { return Iterator(m_data.data<T>() + m_size); }
-	ConstIterator begin() const { return ConstIterator(m_data.data<T>()); }
-	ConstIterator end() const { return ConstIterator(m_data.data<T>() + m_size); }
-	ConstIterator cbegin() const { return ConstIterator(m_data.data<T>()); }
-	ConstIterator cend() const { return ConstIterator(m_data.data<T>() + m_size); }
-};
+	Iterator begin() { return Iterator(m_data); }
+	Iterator end() { return Iterator(m_data + m_size); }
+	ConstIterator begin() const { return ConstIterator(m_data); }
+	ConstIterator end() const { return ConstIterator(m_data + m_size); }
+	ConstIterator cbegin() const { return ConstIterator(m_data); }
+	ConstIterator cend() const { return ConstIterator(m_data + m_size); }
+
+private:
+
+	void construct(T* ptr, T& value) {
+		if constexpr (std::is_move_constructible_v<T>) {
+			m_allocator.construct(ptr, std::move(value));
+		}
+		else if constexpr (std::is_copy_constructible_v<T>) {
+			m_allocator.construct(ptr, value);
+		}
+		else static_assert(false, "Value type must be copy or move constructible");
+	}
+
+	void assign(T& left, T& right) {
+		if constexpr (std::is_move_assignable_v<T>) {
+			left = std::move(right);
+		}
+		else if constexpr (std::is_copy_assignable_v<T>) {
+			left = right;
+		}
+		else static_assert(false, "Value type must be copy or move assignable");
+	}
+
+	};
+}
