@@ -4,8 +4,7 @@
 #include <stdexcept>
 
 namespace Containers {
-
-	// this was done for education purposes, use std::array for anything serious
+	
 	template <typename T, size_t m_size>
 		requires std::is_default_constructible_v<T>
 	class Array
@@ -103,14 +102,14 @@ namespace Containers {
 		constexpr Array() = default;
 		constexpr ~Array() = default;
 
-		constexpr Array(const Array& other) noexcept(std::is_nothrow_copy_constructible_v<T>)
+		constexpr Array(const Array& other) noexcept(std::is_nothrow_copy_assignable_v<T>)
 			requires std::is_copy_assignable_v<T>
 		{
 			for (size_t i = 0; i < m_size; ++i)
 				m_data[i] = other.m_data[i];
 		}
 
-		constexpr Array(Array&& other) noexcept(std::is_nothrow_move_constructible_v<T>)
+		constexpr Array(Array&& other) noexcept(std::is_nothrow_move_assignable_v<T>)
 			requires std::is_move_assignable_v<T>
 		{
 			for (size_t i = 0; i < m_size; ++i)
@@ -139,7 +138,7 @@ namespace Containers {
 			return *this;
 		}
 
-		constexpr Array(const T(&init)[m_size]) noexcept(std::is_nothrow_copy_constructible_v<T>) {
+		constexpr Array(const T(&init)[m_size]) noexcept(std::is_nothrow_copy_assignable_v<T>) {
 			for (size_t i = 0; i < m_size; ++i) {
 				m_data[i] = init[i];
 			}
@@ -152,7 +151,7 @@ namespace Containers {
 			static_assert(sizeof...(Args) <= m_size, "Too many initializers for Array");
 		}
 
-		constexpr Array& operator=(const T(&init)[m_size]) noexcept(std::is_nothrow_copy_constructible_v<T>) {
+		constexpr Array& operator=(const T(&init)[m_size]) noexcept(std::is_nothrow_copy_assignable_v<T>) {
 			for (size_t i = 0; i < m_size; ++i) {
 				m_data[i] = init[i];
 			}
@@ -164,6 +163,29 @@ namespace Containers {
 		{
 			static_assert(sizeof...(Args) <= m_size, "Too many initializers for Array");
 			m_data = { std::forward<Args>(args)... };
+			return *this;
+		}
+
+		constexpr Array(std::initializer_list<T> init) noexcept(std::is_nothrow_copy_assignable_v<T>)
+			requires std::is_copy_assignable_v<T> {
+			if (init.size() > m_size) {
+				throw std::out_of_range("Initializer list size exceeds array size");
+			}
+			auto it = init.begin();
+			for (size_t i = 0; i < init.size(); ++i) {
+				m_data[i] = *it++;
+			}
+		}
+
+		constexpr Array& operator=(std::initializer_list<T> init) noexcept(std::is_nothrow_copy_assignable_v<T>)
+			requires std::is_copy_assignable_v<T> {
+			if (init.size() > m_size) {
+				throw std::out_of_range("Initializer list size exceeds array size");
+			}
+			auto it = init.begin();
+			for (size_t i = 0; i < init.size(); ++i) {
+				m_data[i] = *it++;
+			}
 			return *this;
 		}
 

@@ -14,6 +14,7 @@
 //#include "LinearStorage/Array.h"
 
 #include "LinearStorage/Vector.h"
+#include "LinearStorage/Array.h"
 
 #include <set>
 #include <unordered_set>
@@ -93,14 +94,26 @@ int main() {
 
     {
         Containers::Vector<int> vector = { 1, 2, 3, 4, 5 };
-
+        std::vector<int> stdVector = { 1, 2, 3, 4, 5 };
         auto data = vector.release();
 
+        vector.emplace(vector.end() - 1, 10);
+
+        for (auto& it : vector)
+            std::cout << it << std::endl;
+
+        
         for (size_t i = 0; i < data.size; ++i)
         {
             data.allocator.destroy(data.ptr + i);
         }
         data.allocator.deallocate(data.ptr);
+
+        Containers::Array<int, 10> array = { 1, 2, 3, 4, 5 };
+        std::cout << *std::find(array.begin(), array.end(), 1) << std::endl;
+
+        for(auto& i : array)
+            std::cout << i << std::endl;
     }
 
     if (_CrtDumpMemoryLeaks())

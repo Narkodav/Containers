@@ -161,7 +161,6 @@
     <ClInclude Include="Utilities\UnionStorage.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="LinearStorage\Array.cpp" />
     <ClCompile Include="Memory\Memory.cpp" />
     <ClCompile Include="Memory\MemoryPool.cpp" />
     <ClCompile Include="Memory\MemorySlabbed.cpp" />
@@ -169,7 +168,6 @@
     <ClCompile Include="ContainerBenchmarker.cpp" />
     <ClCompile Include="HashTables\HashTableChained.cpp" />
     <ClCompile Include="HashTables\HashTableOpenAddress.cpp" />
-    <ClCompile Include="LinearStorage\Vector.cpp" />
     <ClCompile Include="Lists\ListDoubleSidedTailed.cpp" />
     <ClCompile Include="Lists\ListDoubleSided.cpp" />
     <ClCompile Include="Lists\ListOneSided.cpp" />
