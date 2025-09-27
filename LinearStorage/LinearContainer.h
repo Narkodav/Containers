@@ -27,11 +27,12 @@ namespace Containers {
         { container.end() } -> std::same_as<typename Container::Iterator>;
         { std::as_const(container).begin() } -> std::same_as<typename Container::ConstIterator>;
         { std::as_const(container).end() } -> std::same_as<typename Container::ConstIterator>;
+        { std::as_const(container).cbegin() } -> std::same_as<typename Container::ConstIterator>;
+        { std::as_const(container).cend() } -> std::same_as<typename Container::ConstIterator>;
 
         // Size operations
         { container.empty() } -> std::same_as<bool>;
         { container.size() } -> std::same_as<typename Container::SizeType>;
-        { container.clear() } -> std::same_as<void>;
 
         // Iterator requirements
             requires std::random_access_iterator<typename Container::Iterator>;
@@ -42,8 +43,7 @@ namespace Containers {
             >;
 
         // Copy operations if ValueType is copyable
-            requires !std::is_copy_constructible_v<typename Container::ValueType> &&
-                !std::is_copy_assignable_v<typename Container::ValueType> ||
+            requires !std::is_copy_constructible_v<typename Container::ValueType> ||
                     std::is_copy_constructible_v<Container> && std::is_copy_assignable_v<Container>;
     };
 
@@ -60,6 +60,7 @@ namespace Containers {
             // Size operations
             { container.resize(index) } -> std::same_as<void>;
             { container.reserve(index) } -> std::same_as<void>;
+            { container.clear() } -> std::same_as<void>;
 
             // Move operations must exist
                 requires std::is_move_assignable_v<Container>&& std::is_move_constructible_v<Container>;

@@ -134,7 +134,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Utilities\Allocator.h" />
+    <ClInclude Include="LinearStorage\InitialiserList.h" />
+    <ClInclude Include="LinearStorage\Span.h" />
+    <ClInclude Include="LinearStorage\String.h" />
+    <ClInclude Include="LinearStorage\StringView.h" />
+    <ClInclude Include="Utilities\Concepts.h" />
     <ClInclude Include="LinearStorage\Array.h" />
     <ClInclude Include="LinearStorage\LinearContainer.h" />
     <ClInclude Include="Memory\Memory.h" />
@@ -158,13 +162,10 @@
     <ClInclude Include="Trees\Trees.h" />
     <ClInclude Include="Sets\UnorderedSet.h" />
     <ClInclude Include="Maps\UnorderedMap.h" />
+    <ClInclude Include="Utilities\Macros.h" />
     <ClInclude Include="Utilities\UnionStorage.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Memory\Memory.cpp" />
-    <ClCompile Include="Memory\MemoryPool.cpp" />
-    <ClCompile Include="Memory\MemorySlabbed.cpp" />
-    <ClCompile Include="Utilities\ByteArray.cpp" />
     <ClCompile Include="ContainerBenchmarker.cpp" />
     <ClCompile Include="HashTables\HashTableChained.cpp" />
     <ClCompile Include="HashTables\HashTableOpenAddress.cpp" />
@@ -179,7 +180,6 @@
     <ClCompile Include="Trees\RedBlackTree.cpp" />
     <ClCompile Include="Sets\UnorderedSet.cpp" />
     <ClCompile Include="Maps\UnorderedMap.cpp" />
-    <ClCompile Include="Utilities\UnionStorage.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
