@@ -43,7 +43,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -138,6 +138,7 @@
     <ClInclude Include="LinearStorage\Span.h" />
     <ClInclude Include="LinearStorage\String.h" />
     <ClInclude Include="LinearStorage\StringView.h" />
+    <ClInclude Include="Tests\TestFramework.h" />
     <ClInclude Include="Utilities\Concepts.h" />
     <ClInclude Include="LinearStorage\Array.h" />
     <ClInclude Include="LinearStorage\LinearContainer.h" />
@@ -175,11 +176,19 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Maps\MapPair.cpp" />
     <ClCompile Include="Maps\Map.cpp" />
+    <ClCompile Include="Tests\TestFramework.cpp" />
+    <ClCompile Include="Tests\unit\AllocatorTests.cpp" />
+    <ClCompile Include="Tests\unit\ArrayTests.cpp" />
+    <ClCompile Include="Tests\unit\SpanTests.cpp" />
+    <ClCompile Include="Tests\unit\StringTests.cpp" />
+    <ClCompile Include="Tests\unit\StringViewTests.cpp" />
+    <ClCompile Include="Tests\unit\VectorTests.cpp" />
     <ClCompile Include="Trees\AVLTree.cpp" />
     <ClCompile Include="Sets\Set.cpp" />
     <ClCompile Include="Trees\RedBlackTree.cpp" />
     <ClCompile Include="Sets\UnorderedSet.cpp" />
     <ClCompile Include="Maps\UnorderedMap.cpp" />
+    <ClCompile Include="Utilities\Macros.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

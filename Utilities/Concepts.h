@@ -53,7 +53,7 @@ namespace Containers {
 		}
 
 		inline void deallocate(T* ptr, size_t count) {
-			::operator delete(ptr, count);
+			::operator delete(ptr, count * sizeof(T));
 		}
 
 		inline void construct(T* ptr) {

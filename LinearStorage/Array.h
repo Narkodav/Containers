@@ -10,13 +10,15 @@ namespace Containers {
 	class Array
 	{
 	public:
-		using Iterator = T*;
-		using ConstIterator = const T*;
-		using ValueType = typename std::remove_reference_t<T>;
+		using ValueType = T;
+		using Iterator = ValueType*;
+		using ConstIterator = const ValueType*;
+		using SizeType = size_t;
 		using iterator = Iterator;
 		using const_iterator = ConstIterator;
 		using value_type = ValueType;
-		using size_type = size_t;
+		using size_type = SizeType;
+
 	private:
 		T m_data[s_size];
 
@@ -66,12 +68,12 @@ namespace Containers {
 			}
 		}
 
-		template<typename... Args>
-		constexpr Array(Args&&... args)
-			: m_data{ std::forward<Args>(args)... } // This will fail to compile if too many arguments
-		{
-			static_assert(sizeof...(Args) <= s_size, "Too many initializers for Array");
-		}
+		//template<typename... Args>
+		//constexpr Array(Args&&... args)
+		//	: m_data{ std::forward<Args>(args)... } // This will fail to compile if too many arguments
+		//{
+		//	static_assert(sizeof...(Args) <= s_size, "Too many initializers for Array");
+		//}
 
 		constexpr Array& operator=(const T(&init)[s_size]) noexcept(std::is_nothrow_copy_assignable_v<T>) {
 			for (size_t i = 0; i < s_size; ++i) {
@@ -80,13 +82,13 @@ namespace Containers {
 			return *this;
 		}
 
-		template<typename... Args>
-		constexpr Array& operator=(Args&&... args)
-		{
-			static_assert(sizeof...(Args) <= s_size, "Too many initializers for Array");
-			m_data = { std::forward<Args>(args)... };
-			return *this;
-		}
+		//template<typename... Args>
+		//constexpr Array& operator=(Args&&... args)
+		//{
+		//	static_assert(sizeof...(Args) <= s_size, "Too many initializers for Array");
+		//	m_data = { std::forward<Args>(args)... };
+		//	return *this;
+		//}
 
 		constexpr Array(std::initializer_list<T> init) noexcept(std::is_nothrow_copy_assignable_v<T>)
 			requires std::is_copy_assignable_v<T> {

@@ -3,7 +3,16 @@
 #include "Array.h"
 
 namespace Containers {
-    //linear storage type
+
+    //linear storage types
+
+    //Any type that has a operator[]
+    template<typename Container, typename T, typename SizeType = size_t>
+    concept TrivialLinearContainer = requires(Container container, typename Container::SizeType index) {
+        { container[index] } -> std::same_as<T&>;
+        { std::as_const(container)[index] } -> std::same_as<T&>;
+    };
+
     template<typename Container>
     concept LinearContainerType = requires(Container container,
         typename Container::ValueType value, typename Container::SizeType index) {
@@ -20,7 +29,7 @@ namespace Containers {
         std::destructible<Container>;
 
         { container[index] } -> std::same_as<typename Container::ValueType&>;
-        { std::as_const(container[index]) } -> std::same_as<const typename Container::ValueType&>;
+        { std::as_const(container)[index] } -> std::same_as<const typename Container::ValueType&>;
 
         // Iterator operations
         { container.begin() } -> std::same_as<typename Container::Iterator>;
@@ -54,8 +63,8 @@ namespace Containers {
         // Dynamic operations
             { container.pushBack(value) } -> std::same_as<void>;
             { container.popBack() } -> std::same_as<void>;
-            { container.insert(index, value) } -> std::same_as<typename Container::Iterator>;
-            { container.erase(index) } -> std::same_as<typename Container::Iterator>;
+            { container.insert(container.begin(), value) } -> std::same_as<typename Container::Iterator>;
+            { container.erase(container.begin()) } -> std::same_as<typename Container::Iterator>;
 
             // Size operations
             { container.resize(index) } -> std::same_as<void>;
@@ -64,5 +73,11 @@ namespace Containers {
 
             // Move operations must exist
                 requires std::is_move_assignable_v<Container>&& std::is_move_constructible_v<Container>;
+    };
+
+    template<typename Container>
+    concept LinearContainerStaticType = LinearContainerType<Container> && requires {
+        { Container{}.size() } -> std::same_as<size_t>;
+        requires std::bool_constant<(Container{}.size(), true)>::value;
     };
 }

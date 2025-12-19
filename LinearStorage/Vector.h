@@ -50,7 +50,7 @@ namespace Containers {
 		T* m_data;
 		size_t m_size = 0;
 		size_t m_capacity = 0;
-		Alloc m_allocator;
+		[[no_unique_address]] Alloc m_allocator;
 
 	public:
 		Vector() : m_data(m_allocator.allocate(s_initialCapacity)), m_capacity(s_initialCapacity) {};
@@ -110,7 +110,7 @@ namespace Containers {
 			return *this;
 		}
 
-		//cannot move vector since it can't release resources
+		//cannot move std::vector since it can't release resources
 		Vector(std::vector<T>&&) = delete;		
 		Vector& operator=(std::vector<T>&&) = delete;
 
@@ -121,7 +121,7 @@ namespace Containers {
 				m_allocator.construct(m_data + i, other.m_data[i]);
 		};
 
-		Vector(Vector&& other) requires (std::is_move_constructible_v<Alloc>) : m_data(other.m_data),
+		Vector(Vector&& other) requires std::is_move_constructible_v<Alloc> : m_data(other.m_data),
 			m_capacity(other.m_capacity), m_size(other.m_size), m_allocator(std::move(other.m_allocator)) {
 			other.m_size = 0;
 			other.m_allocator = Alloc();
@@ -293,6 +293,7 @@ namespace Containers {
 			if (m_size >= m_capacity)
 				reserve(s_growthFactor * (m_capacity + 1));
 			m_allocator.construct(m_data + m_size, std::forward<Args>(data)...);
+			++m_size;
 		}
 
 		template<typename ItType, typename... Args>
@@ -630,6 +631,22 @@ namespace Containers {
 			}
 			m_allocator.deallocate(oldData, m_capacity);
 			m_capacity = m_size;
+		}
+
+		void swap(Vector& other) noexcept {
+			std::swap(m_data, other.m_data);
+			std::swap(m_size, other.m_size);
+			std::swap(m_capacity, other.m_capacity);
+			std::swap(m_allocator, other.m_allocator);
+		}
+
+		bool operator==(const Vector& other) const {
+			if (m_size != other.m_size)
+				return false;
+			for (size_t i = 0; i < m_size; i++)
+				if (m_data[i] != other.m_data[i])
+					return false;
+			return true;
 		}
 
 	protected:

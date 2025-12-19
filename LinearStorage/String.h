@@ -1,9 +1,17 @@
 #pragma once
 #include "Vector.h"
 #include "Utilities/Macros.h"
+#include "LinearContainer.h"
 
 namespace Containers 
 {
+	template<typename CharType>
+	size_t strlen(const CharType* str) {
+		size_t i = 0;
+		while (str[i] != 0) ++i;
+		return i;
+	}
+
 	template<typename Left, typename Right>
 	struct StringConcat {
 		const Left& left;
@@ -220,7 +228,7 @@ namespace Containers
 		inline const CharType& front() const { return m_data[0]; };
 
 		inline Iterator begin() { return m_data.begin(); }
-		inline Iterator end() { return m_data.begin(); }
+		inline Iterator end() { return m_data.end() - 1; }
 		inline ConstIterator begin() const { return m_data.begin(); }
 		inline ConstIterator end() const { return m_data.end() - 1; }
 		inline ConstIterator cbegin() const { return m_data.cbegin(); }
@@ -247,6 +255,7 @@ namespace Containers
 
 		void clear() {
 			m_data.clear();
+			m_data.pushBack('\0');
 		};
 
 		template<typename U>
@@ -314,6 +323,22 @@ namespace Containers
 			m_data.shrinkToFit();
 		}
 
+		template <size_t size>
+		constexpr StringBase& append(const CharType(&s)[size])
+		{
+			return append(s, s + size - 1);
+		}
+
+		template<typename T>
+		StringBase& append(T&& s)
+			requires (std::is_pointer_v<std::remove_reference_t<T>>&&
+		std::same_as<std::remove_cv_t<std::remove_pointer_t<
+			std::remove_reference_t<T>>>, CharType>)
+		{
+			size_t size = std::strlen(s);
+			return append(s, s + size);
+		}
+
 		template <typename InputIt>
 		StringBase& append(InputIt first, InputIt last)
 		{
@@ -339,18 +364,6 @@ namespace Containers
 		{
 			return append(str.begin() + subpos, str.begin() + subpos + sublen);
 		}
-
-		StringBase& append(const CharType* s)
-		{
-			size_t size = std::strlen(s);
-			return append(s, s + size);
-		}
-
-		template <size_t size>
-		constexpr StringBase& append(const CharType(&s)[size])
-		{
-			return append(s, s + size - 1);
-		}
 		
 		StringBase& append(size_t n, CharType c)
 		{
@@ -367,13 +380,31 @@ namespace Containers
 			return result.append(begin(), end());
 		}
 
-		template<typename Expr>
-		StringBase& operator+=(const Expr& expr)
-		{
+		// For C-style arrays: const Type(&right)[N]
+		template<size_t N>
+		auto operator+=(const CharType(&right)[N]) {
+			this->append(right);
+			return *this;
+		}
+
+		// For pointers: const Type*
+		template<typename Right>
+		auto operator+=(Right&& right)
+			requires (std::is_pointer_v<std::remove_reference_t<Right>>&&
+			std::same_as<std::remove_cv_t<std::remove_pointer_t<
+			std::remove_reference_t<Right>>>, CharType>) {
+			this->append(right);
+			return *this;
+		}
+
+		// For everything else
+		template<typename Right>
+		auto operator+=(Right&& right)
+			requires (!std::is_array_v<std::remove_reference_t<Right>> && !std::is_pointer_v<std::remove_reference_t<Right>>) {
 			StringBase str;
-			str.reserve(expr.size() + m_data.size() - 1);
+			str.reserve(right.size() + m_data.size() - 1);
 			str = *this;
-			expr.appendTo(str);
+			right.appendTo(str);
 			m_data = std::move(str.m_data);
 			return *this;
 		}
@@ -499,6 +530,26 @@ namespace Containers
 		//	return *this;
 		//}
 
+		template<LinearContainerType Container>
+		bool operator==(const Container& other) const requires
+			requires(const ValueType& a, const typename Container::ValueType& b) {
+				{ a == b } -> std::convertible_to<bool>;
+		} {
+			if (this->size() != other.size()) return false;
+			for (size_t i = 0; i < this->size(); ++i) {
+				if (!((*this)[i] == other[i])) return false;
+			}
+			return true;
+		}
+
+		bool operator==(const CharType* str) const {
+			if (this->size() != Containers::strlen(str)) return false;
+			for (size_t i = 0; i < this->size(); ++i) {
+				if (!((*this)[i] == str[i])) return false;
+			}
+			return true;
+		}
+
 		friend std::ostream& operator<<(std::ostream& os, const StringBase& obj) {
 			os << obj.data();
 			return os;
@@ -521,14 +572,36 @@ namespace Containers
 	//	return StringConcat<Left, Right>(left, right);
 	//}
 
-	template<typename Left, typename Right>
-	auto operator+(const Left& left, Right&& right) requires (!std::is_array_v<Right>) {
-		using CharType = std::remove_cv_t<std::remove_pointer_t<std::remove_reference_t<Right>>>;
-		return StringLiteralRightConcat<Left, CharType>(left, right);
+	//template<typename Left, typename Right>
+	//auto operator+(const Left& left, Right&& right) requires (!std::is_array_v<Right>) {
+	//	using CharType = std::remove_cv_t<std::remove_pointer_t<std::remove_reference_t<Right>>>;
+	//	return StringLiteralRightConcat<Left, CharType>(left, right);
+	//}
+
+	//template<typename Left, typename CharType, size_t rightSize>
+	//auto operator+(const Left& left, const CharType(&right)[rightSize]) {
+	//	return ConstStringLiteralRightConcat<Left, CharType, rightSize>(left, right);
+	//}
+
+
+	// For C-style arrays: const Type(&right)[N]
+	template<typename Left, typename CharType, size_t N>
+	auto operator+(Left&& left, const CharType(&right)[N]) {
+		return ConstStringLiteralRightConcat<Left, CharType, N>(std::forward<Left>(left), right);
 	}
 
-	template<typename Left, typename CharType, size_t rightSize>
-	auto operator+(const Left& left, const CharType(&right)[rightSize]) {
-		return ConstStringLiteralRightConcat<Left, CharType, rightSize>(left, right);
+	// For pointers: const Type*
+	template<typename Left, typename Right>
+	auto operator+(Left&& left, Right&& right) 
+		requires std::is_pointer_v<std::remove_reference_t<Right>> {
+		using CharType = std::remove_cv_t<std::remove_pointer_t<std::remove_reference_t<Right>>>;
+		return StringLiteralRightConcat<Left, CharType>(std::forward<Left>(left), std::forward<Right>(right));
+	}
+
+	// For everything else
+	template<typename Left, typename Right>
+	auto operator+(Left&& left, Right&& right) 
+		requires (!std::is_array_v<std::remove_reference_t<Right>> && !std::is_pointer_v<std::remove_reference_t<Right>>) {
+		return StringConcat<Left, Right>(std::forward<Left>(left), std::forward<Right>(right));
 	}
 }
