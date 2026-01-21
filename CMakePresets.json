@@ -1,0 +1,26 @@
+{
+    "version": 8,
+    "configurePresets": [
+        {
+            "name": "Default gcc",
+            "displayName": "GCC 15.1.0 x86_64-w64-mingw32",
+            "description": "Using compilers: C = A:\\compilers\\mingw64\\bin\\gcc.exe, CXX = A:\\compilers\\mingw64\\bin\\g++.exe",
+            "generator": "MinGW Makefiles",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+                "CMAKE_C_COMPILER": "A:/compilers/mingw64/bin/gcc.exe",
+                "CMAKE_CXX_COMPILER": "A:/compilers/mingw64/bin/g++.exe",
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "Default gcc",
+            "description": "",
+            "displayName": "",
+            "configurePreset": "Default gcc"
+        }
+    ]
+}
