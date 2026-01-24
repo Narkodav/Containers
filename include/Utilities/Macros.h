@@ -7,27 +7,42 @@
 #endif
 
 namespace Containers {
-	static inline void verify(bool test, const char* message, const char* function, const char* file, int line, int column)
-	{
-#ifdef _DEBUG
-		if (!test)
-		{
-			std::cerr << "❌ ASSERT FAILED: " << message
-				<< "\n   at " << function << " (" << file << ":" << line << ":" << column << ")"
-				<< std::endl;
-			throw std::runtime_error("Assertion failed");
-		}
-#else 
-		(void)test, (void)message, (void)function, (void)file, (void)line, (void)column;
-#endif // _DEBUG
-	}
+
+    inline void verify_runtime(bool test, const char* message, const char* function,
+        const char* file, int line, int column)
+    {
+#if defined(_DEBUG)
+        if (!test)
+        {
+            std::cerr << "❌ ASSERT FAILED: " << message
+                << "\n   at " << function << " (" << file << ":" << line << ":" << column << ")"
+                << std::endl;
+            throw std::runtime_error("Assertion failed");
+        }
+#else
+        (void)test; (void)message; (void)function; (void)file; (void)line; (void)column;
+#endif
+    }
+
 }
 
-#define CONTAINERS_VERIFY(test, message) { \
-    auto LOCATION_VARIABLE = std::source_location::current(); \
-    Containers::verify(test, message, \
-        LOCATION_VARIABLE.function_name(), \
-        LOCATION_VARIABLE.file_name(), \
-        LOCATION_VARIABLE.line(), \
-        LOCATION_VARIABLE.column()); \
+#ifdef _MSC_VER
+extern "C++" {
+    namespace __intern {
+        template<bool> struct __msvc_constant_p {};
+        template<> struct __msvc_constant_p<true> { bool __is_constant_p__(); };
+    }
+#define __builtin_constant_p(x) \
+    (0 __if_exists(::__intern::__msvc_constant_p<!!(x) || !(x)>::__is_constant_p__){+1})
 }
+#endif /* _MSC_VER */
+
+#define STATIC_ASSERT(x) static_assert(x, #x)
+
+#define CONTAINERS_VERIFY(test, message) do { \
+    Containers::verify_runtime(test, message, \
+        std::source_location::current().function_name(), \
+        std::source_location::current().file_name(), \
+        std::source_location::current().line(), \
+        std::source_location::current().column()); \
+} while(0)

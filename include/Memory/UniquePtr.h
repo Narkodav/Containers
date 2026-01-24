@@ -12,9 +12,11 @@
 
 namespace Memory {
 
-	template<typename T, typename Deleter = Containers::DefaultDeleter<T>>
+	template<typename T, typename D = Containers::DefaultDeleter<T>>
 	class UniquePtr
 	{
+	public:
+		using Deleter = D;
 	private:
 		T* m_ptr = nullptr;
 		[[no_unique_address]] Deleter m_deleter;

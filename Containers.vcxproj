@@ -134,19 +134,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\LinearStorage\DynamicArray.h" />
-    <ClInclude Include="include\LinearStorage\EnumArray.h" />
-    <ClInclude Include="include\LinearStorage\String.h" />
-    <ClInclude Include="include\LinearStorage\StringView.h" />
+    <ClInclude Include="include\PointerStorage\HeapBuffer.h" />
+    <ClInclude Include="include\PointerStorage\DynamicArray.h" />
+    <ClInclude Include="include\PointerStorage\EnumArray.h" />
+    <ClInclude Include="include\PointerStorage\String.h" />
+    <ClInclude Include="include\PointerStorage\StringView.h" />
     <ClInclude Include="include\Memory\DirectAccessAllocators\BuddyAllocator.h" />
     <ClInclude Include="include\HashTables\HashTableChained.h" />
     <ClInclude Include="include\HashTables\HashTableOpenAddress.h" />
     <ClInclude Include="include\HashTables\HashTables.h" />
-    <ClInclude Include="include\LinearStorage\Array.h" />
-    <ClInclude Include="include\LinearStorage\InitializerList.h" />
-    <ClInclude Include="include\LinearStorage\LinearContainer.h" />
-    <ClInclude Include="include\LinearStorage\Span.h" />
-    <ClInclude Include="include\LinearStorage\Vector.h" />
+    <ClInclude Include="include\PointerStorage\Array.h" />
+    <ClInclude Include="include\PointerStorage\InitializerList.h" />
+    <ClInclude Include="include\PointerStorage\PointerContainers.h" />
+    <ClInclude Include="include\PointerStorage\Span.h" />
+    <ClInclude Include="include\PointerStorage\Vector.h" />
     <ClInclude Include="include\Lists\ListDoubleSided.h" />
     <ClInclude Include="include\Lists\ListDoubleSidedTailed.h" />
     <ClInclude Include="include\Lists\ListOneSided.h" />
@@ -164,6 +165,7 @@
     <ClInclude Include="include\Utilities\ByteArray.h" />
     <ClInclude Include="include\Utilities\Concepts.h" />
     <ClInclude Include="include\Utilities\Macros.h" />
+    <ClInclude Include="include\Utilities\Templates.h" />
     <ClInclude Include="include\Utilities\UnionStorage.h" />
     <ClInclude Include="LinearStorage\InitialiserList.h" />
     <ClInclude Include="LinearStorage\Span.h" />
@@ -171,6 +173,7 @@
     <ClInclude Include="LinearStorage\StringView.h" />
     <ClInclude Include="include\Memory\DirectAccessAllocators\ListAllocator.h" />
     <ClInclude Include="include\Memory\SharedPtr.h" />
+    <ClInclude Include="include\PointerStorage\ContainerInterfaces.h" />
     <ClInclude Include="Tests\TestFramework.h" />
     <ClInclude Include="include\Memory\UniquePtr.h" />
     <ClInclude Include="Utilities\Concepts.h" />
