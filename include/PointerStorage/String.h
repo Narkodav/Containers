@@ -105,8 +105,8 @@ namespace Containers
 		}
 	};
 
-	template <typename CharType, TypedAllocatorConcept<CharType> Alloc = TypedAllocator<CharType>,
-		LifetimeManagerConcept<CharType> Life = LifetimeManager<CharType>,
+	template <typename CharType, TypedAllocatorType<CharType> Alloc = TypedAllocator<CharType>,
+		LifetimeManagerType<CharType> Life = LifetimeManager<CharType>,
 		size_t s_initialCapacity = 16, float s_growthFactor = 1.618f>
 	class StringBase
 	{

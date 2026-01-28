@@ -5,8 +5,9 @@
 #include <algorithm>
 
 #include "../../Utilities/Concepts.h"
-#include "../../LinearStorage/Vector.h"
+#include "../../PointerStorage/Vector.h"
 
+// allocators that expect visible coherent accessible memory (heap pointers, mapped files, mapped GPU memory, etc.)
 namespace Memory::DirectAccessAllocators {
 
     class BuddyAllocatorBase {
@@ -61,7 +62,7 @@ namespace Memory::DirectAccessAllocators {
             m_freeLists = reinterpret_cast<FreeNode**>(metadata);
             m_allocLevel = reinterpret_cast<uint8_t*>(metadata) + freeListBytes;
 
-            memset(m_freeLists, 0, m_metadataSize);
+            memset(metadata, 0, m_metadataSize);
 
             auto* root = (FreeNode*)m_data;
             root->next = root->prev = nullptr;

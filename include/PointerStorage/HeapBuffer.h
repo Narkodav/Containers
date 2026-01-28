@@ -3,20 +3,17 @@
 
 namespace Containers
 {
-	template <typename T, TypedAllocatorConcept<T> Alloc = TypedAllocator<T>,
-		LifetimeManagerConcept<T> Life = LifetimeManager<T>, std::integral S>
-	class HeapBuffer : public PointerContainerBase<HeapBuffer<T, Alloc, Life, S>, T, S>,
-		VectorContainerInterface<T, S, Alloc>, 
-		LifetimeManagedContainerInterface<HeapBuffer<T, Alloc, Life, S>, T, S, Life>
+	template <typename T, TypedAllocatorType<T> Alloc = TypedAllocator<T>, LifetimeManagerType<T> Life = LifetimeManager<T>>
+	class HeapBuffer  : public VectorContainerBase<T, size_t, Alloc>,
+		public LifetimeManagedContainerInterface<HeapBuffer<T, Alloc, Life>, T, size_t, Life>
 	{
+		friend class LifetimeManagedContainerInterface<HeapBuffer<T, Alloc, Life>, T, size_t, Life>;
+		friend class VectorContainerBase<T, size_t, Alloc>;
 	public:
-		using IteratorBase = PointerContainerBase<HeapBuffer<T, Alloc, Life, S>, T, S>;
 		using ValueType = T;
-		using SizeType = S;
+		using SizeType = size_t;
 		using LifetimeManagerType = Life;
 		using AllocatorType = Alloc;
-		using Iterator = typename IteratorBase::Iterator;
-		using ConstIterator = typename IteratorBase::ConstIterator;
 
 		HeapBuffer(SizeType capacity) {
 			this->allocate(capacity);

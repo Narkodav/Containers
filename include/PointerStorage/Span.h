@@ -51,7 +51,8 @@ namespace Containers
 		constexpr Span &operator=(Span &&) noexcept = default;
 
 		template <SizableContainerType Container>
-		constexpr Span(Container &container) requires std::same_as<typename Container::ValueType, T>
+		constexpr Span(Container &container)
+			requires std::same_as<typename Container::ValueType, T>
 			: m_data(container.data())
 		{
 			if constexpr (s_isDynamic)
@@ -61,7 +62,8 @@ namespace Containers
 		};
 
 		template <SizableContainerType Container>
-		constexpr Span(const Container &container) requires std::same_as<const typename Container::ValueType, T>
+		constexpr Span(const Container &container)
+			requires std::same_as<const typename Container::ValueType, T>
 			: m_data(container.data())
 		{
 			if constexpr (s_isDynamic)
@@ -71,7 +73,8 @@ namespace Containers
 		};
 
 		template <SizableContainerType Container>
-		constexpr Span(Container &container, size_t size) requires std::same_as<typename Container::ValueType, T>
+		constexpr Span(Container &container, size_t size)
+			requires std::same_as<typename Container::ValueType, T>
 			: m_data(container.data())
 		{
 			if constexpr (s_isDynamic)
@@ -81,7 +84,8 @@ namespace Containers
 		};
 
 		template <SizableContainerType Container>
-		constexpr Span(const Container &container, size_t size) requires std::same_as<const typename Container::ValueType, T>
+		constexpr Span(const Container &container, size_t size)
+			requires std::same_as<const typename Container::ValueType, T>
 			: m_data(container.data())
 		{
 			if constexpr (s_isDynamic)
@@ -109,9 +113,10 @@ namespace Containers
 				static_assert(size == s_size);
 		};
 
-		constexpr Span(T *data, size_t size) requires s_isDynamic
-		: m_data(data), m_size(size) {
-		};
+		constexpr Span(T *data, size_t size)
+			requires s_isDynamic
+			: m_data(data), m_size(size) {
+			  };
 
 		constexpr size_t size() const
 		{
@@ -123,7 +128,7 @@ namespace Containers
 
 		constexpr const bool empty() const { return m_data == nullptr; };
 		constexpr const ValueType *data() const { return m_data; };
-		constexpr ValueType*data() { return m_data; };
+		constexpr ValueType *data() { return m_data; };
 
 		constexpr void clear()
 		{
@@ -178,17 +183,18 @@ namespace Containers
 		Span<ValueType> subSpan(SizeType offset, SizeType size) { return Span<ValueType>(this->derived().data() + offset, size); };
 		Span<const ValueType> subSpan(SizeType offset, SizeType size) const { return Span<const ValueType>(this->derived().data() + offset, size); };
 
-		template<SizeType size>
+		template <SizeType size>
 		Span<ValueType, size> subSpan(SizeType offset) { return Span<ValueType, size>(this->derived().data() + offset); };
 
-		template<SizeType size>
+		template <SizeType size>
 		Span<const ValueType, size> subSpan(SizeType offset) const { return Span<const ValueType, size>(this->derived().data() + offset); };
 	};
 
-
-	template<typename Derived, typename V, typename S, typename I, typename CI>
-	class SubspanInterface : private CRTPBase<SubspanInterface, Derived, V, S, I, CI> {
+	template <typename Derived, typename V, typename S, typename I, typename CI>
+	class SubspanInterface : private CRTPBase<SubspanInterface, Derived, V, S, I, CI>
+	{
 		friend class CRTPBase<SubspanInterface, Derived, V, S, I, CI>;
+
 	public:
 		using ValueType = V;
 		using SizeType = S;
@@ -204,10 +210,10 @@ namespace Containers
 		Span<ValueType> subSpan(SizeType offset, SizeType size) { return Span<ValueType>(this->derived().data() + offset, size); };
 		Span<const ValueType> subSpan(SizeType offset, SizeType size) const { return Span<const ValueType>(this->derived().data() + offset, size); };
 
-		template<SizeType size>
+		template <SizeType size>
 		Span<ValueType, size> subSpan(SizeType offset) { return Span<ValueType, size>(this->derived().data() + offset); };
 
-		template<SizeType size>
+		template <SizeType size>
 		Span<const ValueType, size> subSpan(SizeType offset) const { return Span<const ValueType, size>(this->derived().data() + offset); };
 	};
 }

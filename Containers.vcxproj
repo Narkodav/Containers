@@ -134,6 +134,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\Memory\ExternalMetadataAllocators\BuddyAllocator.h" />
+    <ClInclude Include="include\Memory\ExternalMetadataAllocators\ListAllocator.h" />
     <ClInclude Include="include\PointerStorage\HeapBuffer.h" />
     <ClInclude Include="include\PointerStorage\DynamicArray.h" />
     <ClInclude Include="include\PointerStorage\EnumArray.h" />
@@ -174,6 +176,8 @@
     <ClInclude Include="include\Memory\DirectAccessAllocators\ListAllocator.h" />
     <ClInclude Include="include\Memory\SharedPtr.h" />
     <ClInclude Include="include\PointerStorage\ContainerInterfaces.h" />
+    <ClInclude Include="include\PointerStorage\ManualVector.h" />
+    <ClInclude Include="include\PointerStorage\Stack.h" />
     <ClInclude Include="Tests\TestFramework.h" />
     <ClInclude Include="include\Memory\UniquePtr.h" />
     <ClInclude Include="Utilities\Concepts.h" />

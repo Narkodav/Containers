@@ -9,7 +9,7 @@
 
 namespace Containers
 {
-	template <typename T, size_t s_size, LifetimeManagerConcept<T> Life = LifetimeManager<T>>
+	template <typename T, size_t s_size, LifetimeManagerType<T> Life = LifetimeManager<T>>
 	class Array : public ArrayContainerBase<T, s_size, Life>,
 		public IteratorContainerInterface<Array<T, s_size, Life>, T, size_t>,
 		public LifetimeManagedContainerInterface<Array<T, s_size, Life>, T, size_t, Life>,
@@ -20,9 +20,9 @@ namespace Containers
 		friend class IteratorContainerInterface<Array<T, s_size, Life>, T, size_t>;
 		friend class LifetimeManagedContainerInterface<Array<T, s_size, Life>, T, size_t, Life>;
 		friend class SubspanInterface<Array<T, s_size, Life>, T, size_t,
-			typename IteratorContainerInterface<Array<T, s_size, Life>, T, size_t>::Iterator,
-			typename IteratorContainerInterface<Array<T, s_size, Life>, T, size_t>::ConstIterator>;
-
+		typename IteratorContainerInterface<Array<T, s_size, Life>, T, size_t>::Iterator,
+		typename IteratorContainerInterface<Array<T, s_size, Life>, T, size_t>::ConstIterator>;
+		
 	public:
 		static_assert(!std::is_reference_v<T>, "Array does not support references");
 		static_assert(std::is_destructible_v<T>, "Array requires destructible types");
@@ -36,34 +36,36 @@ namespace Containers
 		using Iterator = IteratorBase::Iterator;
 		using ConstIterator = IteratorBase::ConstIterator;
 
-		constexpr Array() {
-			this->range—onstruct(size());
+		constexpr Array()
+		{
+			this->rangeConstruct(size());
 		};
 
-		constexpr ~Array() {
+		constexpr ~Array()
+		{
 			this->rangeDestroy(size());
 		};
 
 		constexpr Array(const Array &other) noexcept(std::is_nothrow_copy_assignable_v<T>)
 			requires std::is_copy_assignable_v<T>
 		{
-			this->range—onstruct(size(), other.data());
+			this->rangeConstruct(size(), other.data());
 		}
 
 		constexpr Array(Array &&other) noexcept(std::is_nothrow_move_assignable_v<T>)
 			requires std::is_move_assignable_v<T>
 		{
 			this->m_lifetimeManager = std::exchange(other.m_lifetimeManager, Life());
-			this->rangeMove—onstruct(size(), other.data());
+			this->rangeMoveConstruct(size(), other.data());
 			this->rangeDestroy(other.data(), size());
-			other.range—onstruct(size());
+			other.rangeConstruct(size());
 		}
 
 		constexpr Array &operator=(const Array &other) noexcept(std::is_nothrow_copy_assignable_v<T>)
 			requires std::is_copy_assignable_v<T>
 		{
 			if (this != &other)
-				this->range—onstruct(size(), other.data());
+				this->rangeConstruct(size(), other.data());
 			return *this;
 		}
 
@@ -74,9 +76,9 @@ namespace Containers
 			{
 				this->rangeDestroy(size());
 				this->m_lifetimeManager = std::exchange(other.m_lifetimeManager, Life());
-				this->rangeMove—onstruct(size(), other.data());
+				this->rangeMoveConstruct(size(), other.data());
 				this->rangeDestroy(other.data(), size());
-				other.range—onstruct(size());
+				other.rangeConstruct(size());
 			}
 			return *this;
 		}
@@ -85,15 +87,14 @@ namespace Containers
 			requires std::is_copy_assignable_v<T>
 		{
 			CONTAINERS_VERIFY(init.size() > s_size, "Initializer list size exceeds array size");
-			this->range—onstruct(size(), init.begin());
-			return *this;
+			this->rangeConstruct(size(), init.begin());
 		}
 
 		constexpr Array &operator=(InitializerList<T> init) noexcept(std::is_nothrow_copy_assignable_v<T>)
 			requires std::is_copy_assignable_v<T>
 		{
 			CONTAINERS_VERIFY(init.size() > s_size, "Initializer list size exceeds array size");
-			this->range—onstruct(size(), init.begin());
+			this->rangeConstruct(size(), init.begin());
 			return *this;
 		}
 
