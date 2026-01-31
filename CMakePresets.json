@@ -8,53 +8,52 @@
 
     "configurePresets": [
         {
-            "name": "mingw",
-            "displayName": "MinGW (GCC)",
+            "name": "mingw-debug-static",
+            "displayName": "MinGW Debug static",
             "generator": "MinGW Makefiles",
-            "binaryDir": "${sourceDir}/build/${presetName}",
+            "binaryDir": "${sourceDir}/build/mingw-debug-static",
             "cacheVariables": {
-                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}",
                 "CMAKE_C_COMPILER": "A:/compilers/mingw64/bin/gcc.exe",
-                "CMAKE_CXX_COMPILER": "A:/compilers/mingw64/bin/g++.exe"
+                "CMAKE_CXX_COMPILER": "A:/compilers/mingw64/bin/g++.exe",
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/mingw-debug-static"
             }
         },
         {
-            "name": "msvc",
-            "displayName": "MSVC (Ninja)",
+            "name": "mingw-release-static",
+            "displayName": "MinGW Release static",
+            "generator": "MinGW Makefiles",
+            "binaryDir": "${sourceDir}/build/mingw-release-static",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "A:/compilers/mingw64/bin/gcc.exe",
+                "CMAKE_CXX_COMPILER": "A:/compilers/mingw64/bin/g++.exe",
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/mingw-release-static"
+            }
+        },
+        {
+            "name": "msvc-debug-static",
+            "displayName": "MSVC Debug (Ninja) static",
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build/${presetName}",
+            "binaryDir": "${sourceDir}/build/msvc-debug-static",
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "cl.exe",
                 "CMAKE_CXX_COMPILER": "cl.exe",
-                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/msvc"
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/msvc-debug-static"
             }
-        }
-    ],
-
-    "buildPresets": [
-        {
-            "name": "mingw-debug",
-            "displayName": "MinGW Debug",
-            "configurePreset": "mingw",
-            "configuration": "Debug"
         },
         {
-            "name": "mingw-release",
-            "displayName": "MinGW Release",
-            "configurePreset": "mingw",
-            "configuration": "Release"
-        },
-        {
-            "name": "msvc-debug",
-            "displayName": "MSVC Debug",
-            "configurePreset": "msvc",
-            "configuration": "Debug"
-        },
-        {
-            "name": "msvc-release",
-            "displayName": "MSVC Release",
-            "configurePreset": "msvc",
-            "configuration": "Release"
+            "name": "msvc-release-static",
+            "displayName": "MSVC Release (Ninja) static",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/msvc-release-static",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "cl.exe",
+                "CMAKE_CXX_COMPILER": "cl.exe",
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/msvc-release-static"
+            }
         }
     ]
 }

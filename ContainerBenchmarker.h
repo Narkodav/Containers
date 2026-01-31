@@ -1,5 +1,5 @@
 ﻿#pragma once
-#pragma execution_character_set("utf-8")
+
 #include <string>
 #include <concepts>
 #include <iterator>
@@ -12,43 +12,6 @@
 #include <chrono>
 #include <functional>
 
-template<typename T>
-concept Container = requires(T container, typename T::value_type value) {
-    typename T::value_type;     // Must have value_type
-    typename T::size_type;      // Must have size_type
-    typename T::iterator;       // Must have iterator
-    typename T::const_iterator; // Must have const_iterator
-
-    // Element access and modification
-    { container.insert(value) };  // Can insert elements
-    { container.erase(value) };   // Can erase elements
-    { container.find(value) }     // Can find elements
-    -> std::same_as<typename T::iterator>;
-
-    // Size operations
-    { container.size() } -> std::same_as<typename T::size_type>;
-    { container.empty() } -> std::same_as<bool>;
-
-    // Iterator support
-    { container.begin() } -> std::same_as<typename T::iterator>;
-    { container.end() } -> std::same_as<typename T::iterator>;
-    { container.cbegin() } -> std::same_as<typename T::const_iterator>;
-    { container.cend() } -> std::same_as<typename T::const_iterator>;
-
-}&& std::is_default_constructible_v<T>  // Check default constructible
-&& std::is_destructible_v<T>           // Check destructible
-&& requires(const T container, typename T::value_type value) {
-    // Const operations
-    { container.find(value) }     // Can find elements in const context
-    -> std::same_as<typename T::const_iterator>;
-    { container.size() } -> std::same_as<typename T::size_type>;
-    { container.empty() } -> std::same_as<bool>;
-};
-
-// Optional: Helper concept for checking if a type is a container of a specific value type
-template<typename T, typename ValueType>
-concept ContainerOf = Container<T> &&
-std::same_as<typename T::value_type, ValueType>;
 
 class ContainerBenchmarker
 {
@@ -65,7 +28,7 @@ public:
     };
 
     template<typename Func>
-    static double measureTime(Func&& func, size_t iterations = 5)
+    static double measureTime(Func&& func)
     {
         auto start = std::chrono::high_resolution_clock::now();
         func();
@@ -100,7 +63,7 @@ public:
         return metrics;
     }
 
-    template <typename T, Container Container1, Container Container2>
+    template <typename T, typename Container1, typename Container2>
     static std::pair<Metrics, Metrics> runTest(const std::vector<T>& testData, size_t measurementAmount)
     {
         std::random_device rd;
@@ -191,7 +154,6 @@ public:
 
             // Delete test
             deleteTimes1.push_back(measureTime([&]() {
-                size_t counter = 0;
                 for (const auto& val : shuffledData) {
                     container1.erase(val);
                 }
@@ -244,7 +206,7 @@ public:
             << metrics2.deleteMean / metrics1.deleteMean << "\n";
     }
 
-    template <typename T, Container Container1, Container Container2>
+    template <typename T, typename Container1, typename Container2>
     static void compareContainers(size_t numOperations,
         const std::string& name1, const std::string& name2,
         std::function<T(size_t)> valueGenerator = [](size_t i) { return static_cast<T>(i); })

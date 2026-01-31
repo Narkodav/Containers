@@ -10,24 +10,39 @@ constexpr size_t ARRAY_SIZE = 100'000;
 
 struct NonTrivial
 {
-    const int g;
+    const int g = 1;
     int x;
-    NonTrivial() : x(42), g(1) {}
-    NonTrivial(int d, const int f) : g(f), x(d) {}
-    NonTrivial(const NonTrivial &other) : g(other.g), x(other.x) {}
-    NonTrivial(NonTrivial &&other) noexcept : g(other.g), x(other.x) { other.x = 0; }
-    // NonTrivial &operator=(const NonTrivial &other)
-    // {
-    //     x = other.x;
-    //     return *this;
-    // }
-    // NonTrivial &operator=(NonTrivial &&other) noexcept
-    // {
-    //     x = other.x;
-    //     other.x = 0;
-    //     return *this;
-    // }
+    NonTrivial() : x(42) {}
+    NonTrivial(int d) : x(d) {}
+    NonTrivial(const NonTrivial &other) : x(other.x) {}
+    NonTrivial(NonTrivial &&other) noexcept : x(other.x) { other.x = 0; }
+    NonTrivial &operator=(const NonTrivial &other)
+    {
+        x = other.x;
+        return *this;
+    }
+    NonTrivial &operator=(NonTrivial &&other) noexcept
+    {
+        x = other.x;
+        other.x = 0;
+        return *this;
+    }
     ~NonTrivial() { x = -1; }
+
+    bool operator==(const NonTrivial& other) const noexcept {
+        return x == other.x;
+    }
+
+    
+    bool operator!=(const NonTrivial& other) const noexcept {
+        return x != other.x;
+    }
+
+    struct Hasher {
+        inline auto operator()(const NonTrivial& key) const {
+            return std::hash<int>()(key.x);
+        }
+    };
 };
 
 template <typename T>
@@ -136,14 +151,17 @@ void benchmark_raw_bytes_stack()
 #include "../include/PointerStorage/ManualVector.h"
 #include "../include/Utilities/ReusableStorage.h"
 #include "../include/Lists/BidirectionalList.h"
+#include "../include/Sets/UnorderedSet.h"
+#include "../include/Maps/UnorderedMap.h"
+#include "../ContainerBenchmarker.h"
 
 #include <array>
 #include <chrono>
 #include <iostream>
 #include <vector>
 #include <list>
-
-
+#include <unordered_set>
+#include <unordered_map>
 
 template <typename Func>
 auto benchmark(Func f, size_t iterations = 1000000)
@@ -160,34 +178,11 @@ auto benchmark(Func f, size_t iterations = 1000000)
 
 int main()
 {
-    Containers::Vector<NonTrivial> data;
-    data.resize(10, {1, 1});
-    for(auto it : data)
-    std::cout << it.g << ", ";
-    std::cout<< std::endl;
-    auto* raw = data.data();
-    data.clear();
-    data.resize(10, {2, 2});
-    for(size_t i = 0; i < data.size(); ++i)
-    {
-            std::cout << data[i].g << ", ";
-            std::cout << raw[i].g << ", ";
-    }
-    std::cout << std::endl;
+    ContainerBenchmarker::compareContainers<NonTrivial, Containers::UnorderedSet<NonTrivial, NonTrivial::Hasher>, 
+    std::unordered_set<NonTrivial, NonTrivial::Hasher>>(
+        100000, std::string("Custom set"), std::string("std set"), 
+        [](size_t i) -> NonTrivial { return NonTrivial(i); }
+    );
 
-    Containers::BidirectionalList<int> list;
-    for(size_t i = 0; i < 10; ++i)
-        list.pushBack(i);
-    std::cout << list.size() << std::endl;
-
-    for(auto it : list)
-        std::cout << it << ", ";
-    std::cout << std::endl;
-    for(size_t i = 0; i < 5; ++i)
-        list.popFront();
-
-    std::cout << list.size() << std::endl;
-    for(auto it : list)
-        std::cout << it << ", ";
     return 0;
 }
