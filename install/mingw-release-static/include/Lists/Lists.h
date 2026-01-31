@@ -126,10 +126,26 @@ namespace Containers
         ForwardListIteratorBase() = default;
         ForwardListIteratorBase(Node *node) : m_node(node) {};
 
+        template <typename U>
+        ForwardListIteratorBase(U *node) requires std::convertible_to<const U *, Node *>
+        : m_node(node) {};
+
         ForwardListIteratorBase(const ForwardListIteratorBase&) = default;
         ForwardListIteratorBase& operator=(const ForwardListIteratorBase&) = default;
         ForwardListIteratorBase(ForwardListIteratorBase&&) = default;
         ForwardListIteratorBase& operator=(ForwardListIteratorBase&&) = default;
+
+		template <typename U, typename N>
+		constexpr ForwardListIteratorBase(ForwardListIteratorBase<U, N> it) noexcept
+			requires std::convertible_to<const U *, T *> && std::convertible_to<const N *, Node *>
+			: m_node(it.node()){};
+
+		template <typename U, typename N>
+		constexpr ForwardListIteratorBase operator=(ForwardListIteratorBase<U, N> it) noexcept
+			requires std::convertible_to<const U *, T *> && std::convertible_to<const N *, Node *>
+		{
+			m_node = it.node();
+		};
 
         Reference operator*()
         {

@@ -146,14 +146,16 @@ void benchmark_raw_bytes_stack()
               << " ns destroy\n";
 }
 
-#include "../include/PointerStorage/Vector.h"
-#include "../include/PointerStorage/Array.h"
-#include "../include/PointerStorage/ManualVector.h"
-#include "../include/Utilities/ReusableStorage.h"
-#include "../include/Lists/BidirectionalList.h"
-#include "../include/Sets/UnorderedSet.h"
-#include "../include/Maps/UnorderedMap.h"
-#include "../ContainerBenchmarker.h"
+#include "PointerStorage/Vector.h"
+#include "PointerStorage/Array.h"
+#include "PointerStorage/ManualVector.h"
+#include "Utilities/ReusableStorage.h"
+#include "Lists/BidirectionalList.h"
+#include "Sets/UnorderedSet.h"
+#include "Maps/UnorderedMap.h"
+#include "ContainerBenchmarker.h"
+#include "ContainerBenchmarker.h"
+#include "Memory/ExternalMetadataAllocators/BuddyAllocator.h"
 
 #include <array>
 #include <chrono>
@@ -178,11 +180,19 @@ auto benchmark(Func f, size_t iterations = 1000000)
 
 int main()
 {
-    ContainerBenchmarker::compareContainers<NonTrivial, Containers::UnorderedSet<NonTrivial, NonTrivial::Hasher>, 
-    std::unordered_set<NonTrivial, NonTrivial::Hasher>>(
-        100000, std::string("Custom set"), std::string("std set"), 
-        [](size_t i) -> NonTrivial { return NonTrivial(i); }
-    );
+    // ContainerBenchmarker::compareContainers<NonTrivial, Containers::UnorderedSet<NonTrivial, NonTrivial::Hasher>, 
+    // std::unordered_set<NonTrivial, NonTrivial::Hasher>>(
+    //     100000, std::string("Custom set"), std::string("std set"), 
+    //     [](size_t i) -> NonTrivial { return NonTrivial(i); }
+    // );
+
+    Memory::ExternalMetadataAllocators::BuddyAllocatorBase alloc;
+    Containers::RawAllocator rawAlloc;
+    size_t memorySize = 1024 * 1024;
+    void* memory = rawAlloc.allocate(memorySize, 8);
+    alloc.assign(reinterpret_cast<uintptr_t>(memory), memorySize);
+    void* ptr = reinterpret_cast<void*>(alloc.allocate(100));
+    alloc.deallocate(reinterpret_cast<uintptr_t>(ptr));
 
     return 0;
 }

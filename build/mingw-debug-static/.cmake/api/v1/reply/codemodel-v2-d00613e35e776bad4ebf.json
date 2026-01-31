@@ -13,7 +13,11 @@
 						"string" : "3.10"
 					},
 					"projectIndex" : 0,
-					"source" : "."
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0
+					]
 				}
 			],
 			"name" : "Debug",
@@ -24,10 +28,23 @@
 					[
 						0
 					],
-					"name" : "Containers"
+					"name" : "Containers",
+					"targetIndexes" : 
+					[
+						0
+					]
 				}
 			],
-			"targets" : []
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ContainersTests::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ContainersTests-Debug-46594c590513fb6e8bab.json",
+					"name" : "ContainersTests",
+					"projectIndex" : 0
+				}
+			]
 		}
 	],
 	"kind" : "codemodel",

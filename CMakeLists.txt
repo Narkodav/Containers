@@ -77,3 +77,16 @@ install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/ContainersConfig.cmake
     DESTINATION lib/cmake/Containers
 )
+
+# Add test executable
+add_executable(ContainersTests
+    ${CMAKE_SOURCE_DIR}/Tests/main.cpp
+)
+
+target_link_libraries(ContainersTests PRIVATE ${PROJECT_NAME})
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(ContainersTests PRIVATE -Wall -Wextra -Wpedantic)
+elseif (MSVC)
+    target_compile_options(ContainersTests PRIVATE /W4)
+endif()

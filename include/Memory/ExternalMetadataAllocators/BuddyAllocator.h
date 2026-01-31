@@ -46,9 +46,7 @@ namespace Memory::ExternalMetadataAllocators {
             size_t minBlocks = heapSize / minBlock;
             auto levels = log2Floor(minBlocks);
 
-            size_t freeListBytes = levels * sizeof(Containers::BidirectionalList<uintptr_t>);
             size_t allocBytes = minBlocks * sizeof(uint8_t);
-            size_t meta = align8(freeListBytes + allocBytes);
 
             m_data = reinterpret_cast<uintptr_t>(memory);
             m_size = heapSize;
@@ -125,8 +123,7 @@ namespace Memory::ExternalMetadataAllocators {
             size = std::max(size, m_minBlock);
             size = alignPow2(size);
 
-            int target = levelFor(size);
-            if (target < 0) return 0;
+            size_t target = levelFor(size);
 
             for (size_t lvl = target; lvl != std::numeric_limits<size_t>::max(); --lvl) {
                 if (m_freeLists[lvl].empty()) continue;

@@ -5,7 +5,6 @@
         "minor": 21,
         "patch": 0
     },
-
     "configurePresets": [
         {
             "name": "mingw-debug-static",
@@ -54,6 +53,20 @@
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/msvc-release-static"
             }
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "mingw-debug-static-tests",
+            "description": "",
+            "displayName": "mingw-debug-static-tests",
+            "configurePreset": "mingw-debug-static"
+        },
+        {
+            "name": "mingw-release-static-tests",
+            "description": "",
+            "displayName": "mingw-release-static-tests",
+            "configurePreset": "mingw-release-static"
         }
     ]
 }

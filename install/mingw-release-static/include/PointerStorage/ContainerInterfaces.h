@@ -262,24 +262,19 @@ namespace Containers
 		{
 			auto &derived = this->derived();
 			if (size < m_size)
-			{
-				for (SizeType i = size; i < m_size; ++i)
-					derived.destroy(i);
-			}
+				derived.rangeDestroy(derived.data() + size, m_size - size);
 			else if (size > m_size)
 			{
-				if constexpr (HasGrowTrait<Derived>::value)
-				{
+				if constexpr (HasGrowTrait<Derived>::value) {
 					if (size > derived.capacity())
 						derived.grow(size);
 				}
-				else
-				{
+				else {
 					CONTAINERS_VERIFY(size <= derived.capacity(), "Cannot grow past capacity");
 				}
-				for (SizeType i = m_size; i < size; ++i)
-					derived.construct(i);
+				derived.rangeConstruct(derived.data() + m_size, size - m_size);
 			}
+			else return;
 			m_size = size;
 		}
 
