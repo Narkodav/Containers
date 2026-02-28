@@ -1,6 +1,6 @@
 #pragma once
-#include "../Trees/Trees.h"
-#include "MapPair.h"
+#include "Trees/Trees.h"
+#include "Maps/MapPair.h"
 
 #include <stdexcept>
 #include <cassert>

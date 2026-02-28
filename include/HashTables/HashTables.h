@@ -1,5 +1,5 @@
 #pragma once
-#include "HashTableOpenAddress.h"
+#include "HashTables/HashTableOpenAddress.h"
 
 namespace Containers {
     template<typename HashTable>
@@ -35,9 +35,9 @@ namespace Containers {
         { table.reserve(capacity) } -> std::same_as<void>;
 
         // Copy operations if ValueType is copyable
-            requires !std::is_copy_constructible_v<typename HashTable::ValueType> &&
-        !std::is_copy_assignable_v<typename HashTable::ValueType> ||
-            std::is_copy_constructible_v<HashTable> && std::is_copy_assignable_v<HashTable>;
+        requires (!std::is_copy_constructible_v<typename HashTable::ValueType> &&
+            !std::is_copy_assignable_v<typename HashTable::ValueType>) ||
+            (std::is_copy_constructible_v<HashTable> && std::is_copy_assignable_v<HashTable>);
 
         // Move operations must exist
             requires std::is_move_assignable_v<HashTable>&& std::is_move_constructible_v<HashTable>;

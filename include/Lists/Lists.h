@@ -4,8 +4,8 @@
 #include <concepts>
 #include <stdexcept>
 
-#include "../Utilities/Concepts.h"
-#include "../Utilities/ReusableStorage.h"
+#include "Utilities/Concepts.h"
+#include "Utilities/ReusableStorage.h"
 
 namespace Containers
 {
@@ -156,7 +156,7 @@ namespace Containers
             return m_node->data();
         };
 
-        const Reference operator*() const
+        const ValueType& operator*() const
         {
             return m_node->value();
         }

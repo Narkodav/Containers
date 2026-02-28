@@ -1,8 +1,8 @@
 #pragma once
-#include "../Utilities/Concepts.h"
-#include "PointerContainers.h"
-#include "ContainerInterfaces.h"
-#include "InitializerList.h"
+#include "Utilities/Concepts.h"
+#include "PointerStorage/PointerContainers.h"
+#include "PointerStorage/ContainerInterfaces.h"
+#include "PointerStorage/InitializerList.h"
 
 #include <stdexcept>
 #include <limits>

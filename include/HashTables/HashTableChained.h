@@ -1,6 +1,6 @@
 #pragma once
-#include "../Lists/Lists.h"
-#include "../Utilities/UnionStorage.h"
+#include "Lists/Lists.h"
+#include "Utilities/UnionStorage.h"
 
 #include <memory>
 #include <stdexcept>

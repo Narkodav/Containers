@@ -4,8 +4,8 @@
 #include <stdexcept>
 #include <algorithm>
 
-#include "../../Utilities/Concepts.h"
-#include "../../PointerStorage/Vector.h"
+#include "Utilities/Concepts.h"
+#include "PointerStorage/Vector.h"
 
 // allocators that expect visible coherent accessible memory (heap pointers, mapped files, mapped GPU memory, etc.)
 namespace Memory::DirectAccessAllocators {

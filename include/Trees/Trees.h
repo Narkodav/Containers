@@ -1,6 +1,6 @@
 #pragma once
-#include "RedBlackTree.h"
-#include "AVLTree.h"
+#include "Trees/RedBlackTree.h"
+#include "Trees/AVLTree.h"
 
 #include <concepts>
 #include <type_traits>

@@ -20,7 +20,7 @@ msvc_deps_prefix = Note: including file:
 #############################################
 # Rule for generating CXX dependencies.
 
-rule CXX_SCAN__Containers_Debug
+rule CXX_SCAN__ContainersTests_Debug
   deps = msvc
   command = C:\PROGRA~1\MIB055~1\18\COMMUN~1\VC\Tools\MSVC\1450~1.357\bin\Hostx64\x64\cl.exe $DEFINES $INCLUDES $FLAGS $in -nologo -TP -showIncludes -scanDependencies $DYNDEP_INTERMEDIATE_FILE -Fo$OBJ_FILE
   description = Scanning $in for CXX dependencies
@@ -29,8 +29,8 @@ rule CXX_SCAN__Containers_Debug
 #############################################
 # Rule to generate ninja dyndep files for CXX.
 
-rule CXX_DYNDEP__Containers_Debug
-  command = "E:\Program Files (x86)\CMake\cmake-3.30.2-windows-x86_64\bin\cmake.exe" -E cmake_ninja_dyndep --tdi=CMakeFiles\Containers.dir\CXXDependInfo.json --lang=CXX --modmapfmt=msvc --dd=$out @$out.rsp
+rule CXX_DYNDEP__ContainersTests_Debug
+  command = "E:\Program Files (x86)\CMake\cmake-3.30.2-windows-x86_64\bin\cmake.exe" -E cmake_ninja_dyndep --tdi=CMakeFiles\ContainersTests.dir\CXXDependInfo.json --lang=CXX --modmapfmt=msvc --dd=$out @$out.rsp
   description = Generating CXX dyndep file $out
   rspfile = $out.rsp
   rspfile_content = $in
@@ -40,7 +40,7 @@ rule CXX_DYNDEP__Containers_Debug
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__Containers_scanned_Debug
+rule CXX_COMPILER__ContainersTests_scanned_Debug
   deps = msvc
   command = ${LAUNCHER}${CODE_CHECK}C:\PROGRA~1\MIB055~1\18\COMMUN~1\VC\Tools\MSVC\1450~1.357\bin\Hostx64\x64\cl.exe  /nologo /TP $DEFINES $INCLUDES $FLAGS /showIncludes @$DYNDEP_MODULE_MAP_FILE /Fo$out /Fd$TARGET_COMPILE_PDB /FS -c $in
   description = Building CXX object $out
@@ -49,7 +49,7 @@ rule CXX_COMPILER__Containers_scanned_Debug
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__Containers_unscanned_Debug
+rule CXX_COMPILER__ContainersTests_unscanned_Debug
   deps = msvc
   command = ${LAUNCHER}${CODE_CHECK}C:\PROGRA~1\MIB055~1\18\COMMUN~1\VC\Tools\MSVC\1450~1.357\bin\Hostx64\x64\cl.exe  /nologo /TP $DEFINES $INCLUDES $FLAGS /showIncludes /Fo$out /Fd$TARGET_COMPILE_PDB /FS -c $in
   description = Building CXX object $out
@@ -58,7 +58,7 @@ rule CXX_COMPILER__Containers_unscanned_Debug
 #############################################
 # Rule for linking CXX executable.
 
-rule CXX_EXECUTABLE_LINKER__Containers_Debug
+rule CXX_EXECUTABLE_LINKER__ContainersTests_Debug
   command = C:\WINDOWS\system32\cmd.exe /C "$PRE_LINK && "E:\Program Files (x86)\CMake\cmake-3.30.2-windows-x86_64\bin\cmake.exe" -E vs_link_exe --intdir=$OBJECT_DIR --rc=C:\PROGRA~2\WI3CF2~1\10\bin\100261~1.0\x64\rc.exe --mt=C:\PROGRA~2\WI3CF2~1\10\bin\100261~1.0\x64\mt.exe --manifests $MANIFESTS -- C:\PROGRA~1\MIB055~1\18\COMMUN~1\VC\Tools\MSVC\1450~1.357\bin\Hostx64\x64\link.exe /nologo $in  /out:$TARGET_FILE /implib:$TARGET_IMPLIB /pdb:$TARGET_PDB /version:0.0 $LINK_FLAGS $LINK_PATH $LINK_LIBRARIES && $POST_BUILD"
   description = Linking CXX executable $TARGET_FILE
   restat = $RESTAT
@@ -76,7 +76,7 @@ rule CUSTOM_COMMAND
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = "E:\Program Files (x86)\CMake\cmake-3.30.2-windows-x86_64\bin\cmake.exe" --regenerate-during-build -SE:\unik\C_code\libraries\Containers -BE:\unik\C_code\libraries\Containers\build\msvc-debug
+  command = "E:\Program Files (x86)\CMake\cmake-3.30.2-windows-x86_64\bin\cmake.exe" --regenerate-during-build -S"E:\Program Files (x86)\Code\C_code\libraries\Containers" -B"E:\Program Files (x86)\Code\C_code\libraries\Containers\build\msvc-debug"
   description = Re-running CMake...
   generator = 1
 

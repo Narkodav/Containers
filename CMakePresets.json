@@ -7,66 +7,105 @@
     },
     "configurePresets": [
         {
-            "name": "mingw-debug-static",
-            "displayName": "MinGW Debug static",
+            "name": "clang-debug",
+            "displayName": "Clang Debug",
             "generator": "MinGW Makefiles",
-            "binaryDir": "${sourceDir}/build/mingw-debug-static",
+            "binaryDir": "${sourceDir}/build/clang-debug",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "C:/Users/user/.utils/llvm-mingw/bin/clang.exe",
+                "CMAKE_CXX_COMPILER": "C:/Users/user/.utils/llvm-mingw/bin/clang++.exe",
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/clang-debug"
+            }
+        },
+        {
+            "name": "clang-release",
+            "displayName": "Clang Release",
+            "generator": "MinGW Makefiles",
+            "binaryDir": "${sourceDir}/build/clang-release",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "C:/Users/user/.utils/llvm-mingw/bin/clang.exe",
+                "CMAKE_CXX_COMPILER": "C:/Users/user/.utils/llvm-mingw/bin/clang++.exe",
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/clang-release"
+            }
+        },
+
+        {
+            "name": "mingw-debug",
+            "displayName": "MinGW Debug",
+            "generator": "MinGW Makefiles",
+            "binaryDir": "${sourceDir}/build/mingw-debug",
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "A:/compilers/mingw64/bin/gcc.exe",
                 "CMAKE_CXX_COMPILER": "A:/compilers/mingw64/bin/g++.exe",
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/mingw-debug-static"
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/mingw-debug"
             }
         },
         {
-            "name": "mingw-release-static",
-            "displayName": "MinGW Release static",
+            "name": "mingw-release",
+            "displayName": "MinGW Release",
             "generator": "MinGW Makefiles",
-            "binaryDir": "${sourceDir}/build/mingw-release-static",
+            "binaryDir": "${sourceDir}/build/mingw-release",
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "A:/compilers/mingw64/bin/gcc.exe",
                 "CMAKE_CXX_COMPILER": "A:/compilers/mingw64/bin/g++.exe",
                 "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/mingw-release-static"
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/mingw-release"
             }
         },
         {
-            "name": "msvc-debug-static",
-            "displayName": "MSVC Debug (Ninja) static",
+            "name": "msvc-debug",
+            "displayName": "MSVC Debug (Ninja)",
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build/msvc-debug-static",
+            "binaryDir": "${sourceDir}/build/msvc-debug",
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "cl.exe",
                 "CMAKE_CXX_COMPILER": "cl.exe",
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/msvc-debug-static"
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/msvc-debug"
             }
         },
         {
-            "name": "msvc-release-static",
-            "displayName": "MSVC Release (Ninja) static",
+            "name": "msvc-release",
+            "displayName": "MSVC Release (Ninja)",
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build/msvc-release-static",
+            "binaryDir": "${sourceDir}/build/msvc-release",
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "cl.exe",
                 "CMAKE_CXX_COMPILER": "cl.exe",
                 "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/msvc-release-static"
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/msvc-release"
             }
         }
     ],
     "testPresets": [
+
         {
-            "name": "mingw-debug-static-tests",
+            "name": "clang-debug-tests",
             "description": "",
-            "displayName": "mingw-debug-static-tests",
-            "configurePreset": "mingw-debug-static"
+            "displayName": "clang-debug-tests",
+            "configurePreset": "clang-debug"
         },
         {
-            "name": "mingw-release-static-tests",
+            "name": "clang-release-tests",
             "description": "",
-            "displayName": "mingw-release-static-tests",
-            "configurePreset": "mingw-release-static"
+            "displayName": "clang-release-tests",
+            "configurePreset": "clang-release"
+        },
+
+        {
+            "name": "mingw-debug-tests",
+            "description": "",
+            "displayName": "mingw-debug-tests",
+            "configurePreset": "mingw-debug"
+        },
+        {
+            "name": "mingw-release-tests",
+            "description": "",
+            "displayName": "mingw-release-tests",
+            "configurePreset": "mingw-release"
         }
     ]
 }

@@ -1,8 +1,8 @@
 #pragma once
 #pragma once
-#include "../Utilities/ByteArray.h"
-#include "../Utilities/Concepts.h"
-#include "../Utilities/Macros.h"
+#include "Utilities/ByteArray.h"
+#include "Utilities/Concepts.h"
+#include "Utilities/Macros.h"
 
 #include <memory>
 #include <stdexcept>

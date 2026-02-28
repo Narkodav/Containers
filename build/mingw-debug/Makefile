@@ -31,9 +31,6 @@ default_target: all
 
 .SUFFIXES: .hpux_make_needs_suffix_list
 
-# Produce verbose output by default.
-VERBOSE = 1
-
 # Command-line flag to silence nested $(MAKE).
 $(VERBOSE)MAKESILENT = -s
 
@@ -59,10 +56,10 @@ RM = "E:\Program Files (x86)\CMake\cmake-3.30.2-windows-x86_64\bin\cmake.exe" -E
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = E:\unik\C_code\libraries\Containers
+CMAKE_SOURCE_DIR = "E:\Program Files (x86)\Code\C_code\libraries\Containers"
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = E:\unik\C_code\libraries\Containers\build\mingw-debug
+CMAKE_BINARY_DIR = "E:\Program Files (x86)\Code\C_code\libraries\Containers\build\mingw-debug"
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,11 +84,56 @@ rebuild_cache:
 rebuild_cache/fast: rebuild_cache
 .PHONY : rebuild_cache/fast
 
+# Special rule for the target list_install_components
+list_install_components:
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Available install components are: \"Unspecified\""
+.PHONY : list_install_components
+
+# Special rule for the target list_install_components
+list_install_components/fast: list_install_components
+.PHONY : list_install_components/fast
+
+# Special rule for the target install
+install: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Install the project..."
+	"E:\Program Files (x86)\CMake\cmake-3.30.2-windows-x86_64\bin\cmake.exe" -P cmake_install.cmake
+.PHONY : install
+
+# Special rule for the target install
+install/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Install the project..."
+	"E:\Program Files (x86)\CMake\cmake-3.30.2-windows-x86_64\bin\cmake.exe" -P cmake_install.cmake
+.PHONY : install/fast
+
+# Special rule for the target install/local
+install/local: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing only the local directory..."
+	"E:\Program Files (x86)\CMake\cmake-3.30.2-windows-x86_64\bin\cmake.exe" -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local
+
+# Special rule for the target install/local
+install/local/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing only the local directory..."
+	"E:\Program Files (x86)\CMake\cmake-3.30.2-windows-x86_64\bin\cmake.exe" -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local/fast
+
+# Special rule for the target install/strip
+install/strip: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing the project stripped..."
+	"E:\Program Files (x86)\CMake\cmake-3.30.2-windows-x86_64\bin\cmake.exe" -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip
+
+# Special rule for the target install/strip
+install/strip/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing the project stripped..."
+	"E:\Program Files (x86)\CMake\cmake-3.30.2-windows-x86_64\bin\cmake.exe" -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip/fast
+
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start E:\unik\C_code\libraries\Containers\build\mingw-debug\CMakeFiles E:\unik\C_code\libraries\Containers\build\mingw-debug\\CMakeFiles\progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start "E:\Program Files (x86)\Code\C_code\libraries\Containers\build\mingw-debug\CMakeFiles" "E:\Program Files (x86)\Code\C_code\libraries\Containers\build\mingw-debug\\CMakeFiles\progress.marks"
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start E:\unik\C_code\libraries\Containers\build\mingw-debug\CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start "E:\Program Files (x86)\Code\C_code\libraries\Containers\build\mingw-debug\CMakeFiles" 0
 .PHONY : all
 
 # The main clean target
@@ -119,41 +161,41 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named Containers
+# Target rules for targets named ContainersTests
 
 # Build rule for target.
-Containers: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 Containers
-.PHONY : Containers
+ContainersTests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 ContainersTests
+.PHONY : ContainersTests
 
 # fast build rule for target.
-Containers/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Containers.dir\build.make CMakeFiles/Containers.dir/build
-.PHONY : Containers/fast
+ContainersTests/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ContainersTests.dir\build.make CMakeFiles/ContainersTests.dir/build
+.PHONY : ContainersTests/fast
 
-src/main.obj: src/main.cpp.obj
-.PHONY : src/main.obj
+Tests/main.obj: Tests/main.cpp.obj
+.PHONY : Tests/main.obj
 
 # target to build an object file
-src/main.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Containers.dir\build.make CMakeFiles/Containers.dir/src/main.cpp.obj
-.PHONY : src/main.cpp.obj
+Tests/main.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ContainersTests.dir\build.make CMakeFiles/ContainersTests.dir/Tests/main.cpp.obj
+.PHONY : Tests/main.cpp.obj
 
-src/main.i: src/main.cpp.i
-.PHONY : src/main.i
+Tests/main.i: Tests/main.cpp.i
+.PHONY : Tests/main.i
 
 # target to preprocess a source file
-src/main.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Containers.dir\build.make CMakeFiles/Containers.dir/src/main.cpp.i
-.PHONY : src/main.cpp.i
+Tests/main.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ContainersTests.dir\build.make CMakeFiles/ContainersTests.dir/Tests/main.cpp.i
+.PHONY : Tests/main.cpp.i
 
-src/main.s: src/main.cpp.s
-.PHONY : src/main.s
+Tests/main.s: Tests/main.cpp.s
+.PHONY : Tests/main.s
 
 # target to generate assembly for a file
-src/main.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Containers.dir\build.make CMakeFiles/Containers.dir/src/main.cpp.s
-.PHONY : src/main.cpp.s
+Tests/main.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ContainersTests.dir\build.make CMakeFiles/ContainersTests.dir/Tests/main.cpp.s
+.PHONY : Tests/main.cpp.s
 
 # Help Target
 help:
@@ -162,11 +204,15 @@ help:
 	@echo ... clean
 	@echo ... depend
 	@echo ... edit_cache
+	@echo ... install
+	@echo ... install/local
+	@echo ... install/strip
+	@echo ... list_install_components
 	@echo ... rebuild_cache
-	@echo ... Containers
-	@echo ... src/main.obj
-	@echo ... src/main.i
-	@echo ... src/main.s
+	@echo ... ContainersTests
+	@echo ... Tests/main.obj
+	@echo ... Tests/main.i
+	@echo ... Tests/main.s
 .PHONY : help
 
 

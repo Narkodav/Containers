@@ -1,6 +1,6 @@
 #pragma once
-#include "../Lists/Lists.h"
-#include "../Utilities/ReusableStorage.h"
+#include "Lists/Lists.h"
+#include "Utilities/ReusableStorage.h"
 
 #include <memory>
 #include <stdexcept>
@@ -200,7 +200,7 @@ namespace Containers {
 			m_hasher = std::exchange(other.m_hasher, Hasher());
 			m_equal = std::exchange(other.m_equal, Comparator());
 			m_buckets = std::exchange(other.m_buckets, other.allocate(s_initialCapacity));
-			m_capacity = std::exchange(other.capacity, s_initialCapacity);
+			m_capacity = std::exchange(other.m_capacity, s_initialCapacity);
 			m_size = std::exchange(other.m_size, 0);
 		}
 
@@ -214,7 +214,7 @@ namespace Containers {
 			m_hasher = std::exchange(other.m_hasher, Hasher());
 			m_equal = std::exchange(other.m_equal, Comparator());
 			m_buckets = std::exchange(other.m_buckets, other.allocate(s_initialCapacity));
-			m_capacity = std::exchange(other.capacity, s_initialCapacity);
+			m_capacity = std::exchange(other.m_capacity, s_initialCapacity);
 			m_size = std::exchange(other.m_size, 0);
 
 			return *this;

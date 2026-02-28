@@ -4,9 +4,9 @@
 #include <stdexcept>
 #include <algorithm>
 
-#include "../../Utilities/Concepts.h"
-#include "../../PointerStorage/Vector.h"
-#include "../../Lists/BidirectionalList.h"
+#include "Utilities/Concepts.h"
+#include "PointerStorage/Vector.h"
+#include "Lists/BidirectionalList.h"
 
 // allocators that can accept any type castable to uintptr_t as a pool pointer
 namespace Memory::ExternalMetadataAllocators {
@@ -24,7 +24,6 @@ namespace Memory::ExternalMetadataAllocators {
 
         Containers::Vector<Containers::BidirectionalList<uintptr_t>> m_freeLists = {};
         Containers::Vector<uint8_t> m_allocLevel = {};   // per min block: 0=free, otherwise level+1
-        size_t m_metadataSize = 0;
 
     public:
         BuddyAllocatorBase() = default;
@@ -37,7 +36,7 @@ namespace Memory::ExternalMetadataAllocators {
         BuddyAllocatorBase& operator=(BuddyAllocatorBase&&) = default;
 
         void assign(uintptr_t memory, size_t heapSize, size_t minBlock = s_minAlign) {
-            if (!memory || heapSize < 4096)
+            if (heapSize < 4096)
                 throw std::runtime_error("Invalid pool");
 
             minBlock = std::max(minBlock, s_minAlign);
@@ -48,7 +47,7 @@ namespace Memory::ExternalMetadataAllocators {
 
             size_t allocBytes = minBlocks * sizeof(uint8_t);
 
-            m_data = reinterpret_cast<uintptr_t>(memory);
+            m_data = memory;
             m_size = heapSize;
             m_minBlock = minBlock;
             m_maxLevel = levels - 1;

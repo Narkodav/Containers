@@ -1,14 +1,14 @@
 #pragma once
-#include "../Utilities/ByteArray.h"
-#include "../Utilities/Concepts.h"
-#include "../Utilities/Macros.h"
+#include "Utilities/ByteArray.h"
+#include "Utilities/Concepts.h"
+#include "Utilities/Macros.h"
 
 #include <type_traits>
 #include <utility>
 #include <concepts>
 #include <stdexcept>
 
-#include "Lists.h"
+#include "Lists/Lists.h"
 
 namespace Containers
 {

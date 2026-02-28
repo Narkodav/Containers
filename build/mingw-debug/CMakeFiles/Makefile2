@@ -28,9 +28,6 @@ default_target: all
 
 .SUFFIXES: .hpux_make_needs_suffix_list
 
-# Produce verbose output by default.
-VERBOSE = 1
-
 # Command-line flag to silence nested $(MAKE).
 $(VERBOSE)MAKESILENT = -s
 
@@ -56,16 +53,16 @@ RM = "E:\Program Files (x86)\CMake\cmake-3.30.2-windows-x86_64\bin\cmake.exe" -E
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = E:\unik\C_code\libraries\Containers
+CMAKE_SOURCE_DIR = "E:\Program Files (x86)\Code\C_code\libraries\Containers"
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = E:\unik\C_code\libraries\Containers\build\mingw-debug
+CMAKE_BINARY_DIR = "E:\Program Files (x86)\Code\C_code\libraries\Containers\build\mingw-debug"
 
 #=============================================================================
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/Containers.dir/all
+all: CMakeFiles/ContainersTests.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -73,34 +70,34 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-clean: CMakeFiles/Containers.dir/clean
+clean: CMakeFiles/ContainersTests.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/Containers.dir
+# Target rules for target CMakeFiles/ContainersTests.dir
 
 # All Build rule for target.
-CMakeFiles/Containers.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Containers.dir\build.make CMakeFiles/Containers.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Containers.dir\build.make CMakeFiles/Containers.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=E:\unik\C_code\libraries\Containers\build\mingw-debug\CMakeFiles --progress-num=1,2 "Built target Containers"
-.PHONY : CMakeFiles/Containers.dir/all
+CMakeFiles/ContainersTests.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ContainersTests.dir\build.make CMakeFiles/ContainersTests.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ContainersTests.dir\build.make CMakeFiles/ContainersTests.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="E:\Program Files (x86)\Code\C_code\libraries\Containers\build\mingw-debug\CMakeFiles" --progress-num=1,2 "Built target ContainersTests"
+.PHONY : CMakeFiles/ContainersTests.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/Containers.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start E:\unik\C_code\libraries\Containers\build\mingw-debug\CMakeFiles 2
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/Containers.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start E:\unik\C_code\libraries\Containers\build\mingw-debug\CMakeFiles 0
-.PHONY : CMakeFiles/Containers.dir/rule
+CMakeFiles/ContainersTests.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start "E:\Program Files (x86)\Code\C_code\libraries\Containers\build\mingw-debug\CMakeFiles" 2
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/ContainersTests.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start "E:\Program Files (x86)\Code\C_code\libraries\Containers\build\mingw-debug\CMakeFiles" 0
+.PHONY : CMakeFiles/ContainersTests.dir/rule
 
 # Convenience name for target.
-Containers: CMakeFiles/Containers.dir/rule
-.PHONY : Containers
+ContainersTests: CMakeFiles/ContainersTests.dir/rule
+.PHONY : ContainersTests
 
 # clean rule for target.
-CMakeFiles/Containers.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Containers.dir\build.make CMakeFiles/Containers.dir/clean
-.PHONY : CMakeFiles/Containers.dir/clean
+CMakeFiles/ContainersTests.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ContainersTests.dir\build.make CMakeFiles/ContainersTests.dir/clean
+.PHONY : CMakeFiles/ContainersTests.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

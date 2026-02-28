@@ -1,6 +1,6 @@
 #pragma once
-#include "../HashTables/HashTables.h"
-#include "MapPair.h"
+#include "HashTables/HashTables.h"
+#include "Maps/MapPair.h"
 
 #include <stdexcept>
 #include <cassert>

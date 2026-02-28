@@ -1,5 +1,5 @@
 #pragma once
-#include "../HashTables/HashTables.h"
+#include "HashTables/HashTables.h"
 
 #include <stdexcept>
 #include <cassert>

@@ -1,8 +1,8 @@
 #pragma once
 #include "Vector.h"
-#include "../Utilities/Macros.h"
-#include "PointerContainers.h"
-#include "StringView.h"
+#include "Utilities/Macros.h"
+#include "PointerStorage/PointerContainers.h"
+#include "PointerStorage/StringView.h"
 
 namespace Containers 
 {

@@ -1,7 +1,7 @@
 #pragma once
 #pragma once
 
-#include "SharedPtr.h"
+#include "Memory/SharedPtr.h"
 
 namespace Memory {	
 

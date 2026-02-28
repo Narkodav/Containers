@@ -3,7 +3,8 @@
 #include <utility>
 #include <cstdint>
 #include <cstring>
-#include "Macros.h"
+#include <limits>
+#include "Utilities/Macros.h"
 
 namespace Containers
 {
@@ -59,7 +60,8 @@ namespace Containers
 
 		inline void deallocate(void *ptr, size_t count, size_t align) noexcept
 		{
-			::operator delete(ptr, count, std::align_val_t(align));
+			(void)count;
+			::operator delete(ptr, std::align_val_t(align));
 		}
 	};
 
@@ -109,7 +111,7 @@ namespace Containers
 
 		inline void deallocate(T *ptr, size_t align = alignof(T)) noexcept
 		{
-			::operator delete(ptr, sizeof(T), std::align_val_t(align));
+			::operator delete(ptr, std::align_val_t(align));
 		}
 	};
 
@@ -161,27 +163,28 @@ namespace Containers
 	public:
 		static_assert(std::is_trivially_constructible_v<T>, "Type is not trivially constructible");
 		static_assert(std::is_trivially_destructible_v<T>, "Type is not trivially destructible");
-		static_assert(std::is_trivially_copy_constructible_v<T>, "Type is not trivially copy constructible");
-		static_assert(std::is_trivially_copy_assignable_v<T>, "Type is not trivially copy assignable");
-		static_assert(std::is_trivially_move_constructible_v<T>, "Type is not trivially move constructible");
-		static_assert(std::is_trivially_move_assignable_v<T>, "Type is not trivially move assignable");
+		// static_assert(std::is_trivially_copyable_v<T>, "Type is not trivially copy constructible");
+		// static_assert(std::is_trivially_copy_constructible_v<T>, "Type is not trivially copy constructible");
+		// static_assert(std::is_trivially_copy_assignable_v<T>, "Type is not trivially copy assignable");
+		// static_assert(std::is_trivially_move_constructible_v<T>, "Type is not trivially move constructible");
+		// static_assert(std::is_trivially_move_assignable_v<T>, "Type is not trivially move assignable");
 
-		inline void construct(T *ptr)
+		constexpr inline void construct(T *ptr)
 		{
 			(void)ptr;
 		}
 
-		inline void construct(T *ptr, const T &value)
+		constexpr inline void construct(T *ptr, const T &value)
 		{
 			*ptr = value;
 		}
 
-		inline void destroy(T *ptr)
+		constexpr inline void destroy(T *ptr)
 		{
 			(void)ptr;
 		}
 
-		inline void rangeConstruct(T *dest, size_t count) noexcept
+		constexpr inline void rangeConstruct(T *dest, size_t count) noexcept
 		{
 			(void)dest;
 			(void)count;
@@ -197,7 +200,7 @@ namespace Containers
 			std::memcpy(dest, src, sizeof(T) * count);
 		}
 
-		inline void rangeDestroy(T *dest, size_t count) noexcept
+		constexpr inline void rangeDestroy(T *dest, size_t count) noexcept
 		{
 			(void)dest;
 			(void)count;
@@ -205,7 +208,7 @@ namespace Containers
 	};
 
 	template <typename T>
-	using LifetimeManager = std::conditional_t<std::is_trivial_v<T>,
+	using LifetimeManager = std::conditional_t<std::is_trivially_constructible_v<T> && std::is_trivially_destructible_v<T>,
 	TrivialLifetimeManager<T>, ClassLifetimeManager<T>>;
 
 	template <typename Equ, typename T>

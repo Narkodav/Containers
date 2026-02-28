@@ -1,3 +1,0 @@
-E:/unik/C_code/libraries/Containers/build/mingw/CMakeFiles/Containers.dir
-E:/unik/C_code/libraries/Containers/build/mingw/CMakeFiles/edit_cache.dir
-E:/unik/C_code/libraries/Containers/build/mingw/CMakeFiles/rebuild_cache.dir

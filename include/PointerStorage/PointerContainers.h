@@ -1,6 +1,6 @@
 #pragma once
-#include "../Utilities/Concepts.h"
-#include "../Utilities/Templates.h"
+#include "Utilities/Concepts.h"
+#include "Utilities/Templates.h"
 
 namespace Containers {
 

@@ -3,8 +3,8 @@
 #include <stdexcept>
 #include <concepts>
 
-#include "InitializerList.h"
-#include "Array.h"
+#include "PointerStorage/InitializerList.h"
+#include "PointerStorage/Array.h"
 
 namespace Containers
 {

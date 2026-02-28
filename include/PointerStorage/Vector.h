@@ -1,17 +1,17 @@
 #pragma once
-#include "../Utilities/ByteArray.h"
-#include "../Utilities/Concepts.h"
-#include "../Utilities/Macros.h"
+#include "Utilities/ByteArray.h"
+#include "Utilities/Concepts.h"
+#include "Utilities/Macros.h"
 
 #include <memory>
 #include <stdexcept>
 #include <initializer_list>
 #include <vector>
 
-#include "InitializerList.h"
-#include "ContainerInterfaces.h"
-#include "Span.h"
-#include "../Memory/UniquePtr.h"
+#include "PointerStorage/InitializerList.h"
+#include "PointerStorage/ContainerInterfaces.h"
+#include "PointerStorage/Span.h"
+#include "Memory/UniquePtr.h"
 
 namespace Containers
 {

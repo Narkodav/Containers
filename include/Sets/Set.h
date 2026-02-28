@@ -1,5 +1,5 @@
 #pragma once
-#include "../Trees/Trees.h"
+#include "Trees/Trees.h"
 
 #include <stdexcept>
 #include <cassert>

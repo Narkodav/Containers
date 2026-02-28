@@ -177,6 +177,49 @@ auto benchmark(Func f, size_t iterations = 1000000)
     return std::chrono::duration<double, std::nano>(end - start).count() / iterations;
 }
 
+#include "Utilities/TemplateUnion.h"
+
+union Un
+{
+    std::vector<int> vec;
+    std::array<std::byte, sizeof(std::vector<int>)> bytes;
+};
+
+template<typename T>
+struct Wrapper {
+    union storage_t {
+        T t;
+    } storage_;
+
+    // Conditionally trivial default constructor
+    Wrapper() = default;
+    Wrapper() requires (!std::is_trivially_default_constructible_v<T>) {
+        // ... non-trivial initialization logic here if needed
+        std::cout << "Non-trivial construction for T\n";
+    }
+    ~Wrapper() = default;
+    ~Wrapper() requires (!std::is_trivially_destructible_v<T>) {
+        std::cout << "Non-trivial destructor for T\n";
+    }
+};
+
+struct Trivial {
+    Trivial() = default;
+};
+
+// static_assert(std::is_trivially_default_constructible_v<Wrapper<Trivial>>);
+
+// static_assert(std::is_default_constructible_v<Wrapper<std::vector<int>>>);
+
+// static constexpr Containers::TemplateUnion<int, double> var = [](){
+//     Containers::TemplateUnion<int, double> v;
+//     std::variant<int, double> vs;
+//     vs.emplace<1>(1);
+//     v.set<0>(1);
+
+//     //auto& bytes = v.getBytes();
+//     return v;
+// }();
 
 int main()
 {
@@ -186,13 +229,47 @@ int main()
     //     [](size_t i) -> NonTrivial { return NonTrivial(i); }
     // );
 
-    Memory::ExternalMetadataAllocators::BuddyAllocatorBase alloc;
-    Containers::RawAllocator rawAlloc;
-    size_t memorySize = 1024 * 1024;
-    void* memory = rawAlloc.allocate(memorySize, 8);
-    alloc.assign(reinterpret_cast<uintptr_t>(memory), memorySize);
-    void* ptr = reinterpret_cast<void*>(alloc.allocate(100));
-    alloc.deallocate(reinterpret_cast<uintptr_t>(ptr));
+    // Memory::ExternalMetadataAllocators::BuddyAllocatorBase alloc;
+    // Containers::RawAllocator rawAlloc;
+    // size_t memorySize = 1024 * 1024;
+    // void* memory = rawAlloc.allocate(memorySize, 8);
+    // alloc.assign(reinterpret_cast<uintptr_t>(memory), memorySize);
+    // void* ptr = reinterpret_cast<void*>(alloc.allocate(100));
+    // alloc.deallocate(reinterpret_cast<uintptr_t>(ptr));
+    
+    Containers::TemplateUnion<int, double> un;
+    Containers::TemplateUnion<std::vector<int>, int, double> unn1;
+    
+    static_assert(std::is_default_constructible_v<std::variant<std::vector<int>, int, double>>);
+
+    static_assert(std::is_trivially_default_constructible_v<Containers::TemplateUnion<int, double>>);
+    static_assert(!std::is_trivially_default_constructible_v<Containers::TemplateUnion<std::vector<int>, int, double>>);
+
+    static_assert(std::is_trivially_copyable_v<Containers::TemplateUnion<int, double>>);
+    static_assert(std::is_trivially_move_constructible_v<Containers::TemplateUnion<int, double>>);
+    static_assert(std::is_trivially_move_assignable_v<Containers::TemplateUnion<int, double>>);
+    
+    static_assert(std::is_trivially_default_constructible_v<std::array<uint8_t, 2>>);
+
+    auto& m11 = un.get<0>();
+    auto& m12 = un.get<1>();
+
+    auto& m21 = un.get<int>();
+    auto& m22 = un.get<double>();
+
+    un.set<int>(1);
+    un.set<double>(1);
+    un.set<0>(1);
+    un.set<1>(1);
+
+    std::cout << Containers::TupleHasType<int, int, double>::value << std::endl;
+    std::cout << Containers::TupleHasType<double, int, double>::value << std::endl;
+
+    std::cout << Containers::TupleHasDuplicates<int, double>::value << std::endl;
+    std::cout << Containers::TupleHasDuplicates<int, double, int>::value << std::endl;
+
+    std::cout << Containers::TupleTypeToIndex<0, int, int, double>::value << std::endl;
+    std::cout << Containers::TupleTypeToIndex<0, double, int, double>::value << std::endl;
 
     return 0;
 }

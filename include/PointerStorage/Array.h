@@ -2,10 +2,10 @@
 #include <memory>
 #include <stdexcept>
 
-#include "InitializerList.h"
-#include "PointerContainers.h"
-#include "ContainerInterfaces.h"
-#include "Span.h"
+#include "PointerStorage/InitializerList.h"
+#include "PointerStorage/PointerContainers.h"
+#include "PointerStorage/ContainerInterfaces.h"
+#include "PointerStorage/Span.h"
 
 namespace Containers
 {

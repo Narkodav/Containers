@@ -4,8 +4,8 @@
 #include <concepts>
 #include <stdexcept>
 
-#include "Lists.h"
-#include "../Utilities/Concepts.h"
+#include "Lists/Lists.h"
+#include "Utilities/Concepts.h"
 
 namespace Containers
 {

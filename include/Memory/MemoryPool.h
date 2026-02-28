@@ -1,5 +1,5 @@
 #pragma once
-#include "../Utilities/Concepts.h"
+#include "Utilities/Concepts.h"
 #include <memory>
 #include <stdexcept>
 

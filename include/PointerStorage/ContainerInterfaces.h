@@ -2,8 +2,8 @@
 #include <memory>
 #include <stdexcept>
 
-#include "InitializerList.h"
-#include "PointerContainers.h"
+#include "PointerStorage/InitializerList.h"
+#include "PointerStorage/PointerContainers.h"
 
 namespace Containers
 {
@@ -176,7 +176,7 @@ namespace Containers
 		using AllocatorType = A;
 
 	protected:
-		alignas(ValueType) ValueType *m_data;
+		ValueType *m_data;
 		size_t m_capacity = 0;
 		[[no_unique_address]] AllocatorType m_allocator;
 
