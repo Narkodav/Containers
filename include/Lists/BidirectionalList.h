@@ -10,8 +10,7 @@
 namespace Containers
 {
 
-    template <typename T, UniqueTypedAllocatorType<ListBidirectionalNode<T>> Alloc 
-    = UniqueTypedAllocator<ListBidirectionalNode<T>>, LifetimeManagerType<T> Life = LifetimeManager<T>>
+    template <typename T, typename Alloc = UniqueTypedAllocator<ListBidirectionalNode<T>>, typename Life = LifetimeManager<T>>
     class BidirectionalList
     {
     public:

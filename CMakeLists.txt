@@ -49,6 +49,7 @@ install(FILES
 # Add test executable
 add_executable(ContainersTests
     ${CMAKE_CURRENT_SOURCE_DIR}/Tests/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Tests/BuddyAllocatorTests.cpp
 )
 
 target_link_libraries(ContainersTests PRIVATE ${PROJECT_NAME})

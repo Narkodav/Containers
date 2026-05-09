@@ -1,4 +1,6 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/ContainersTests.dir/Tests/BuddyAllocatorTests.cpp.obj"
+  "CMakeFiles/ContainersTests.dir/Tests/BuddyAllocatorTests.cpp.obj.d"
   "CMakeFiles/ContainersTests.dir/Tests/main.cpp.obj"
   "CMakeFiles/ContainersTests.dir/Tests/main.cpp.obj.d"
   "ContainersTests.exe"

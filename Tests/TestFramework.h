@@ -12,7 +12,7 @@
 
 #undef assert
 
-namespace detail {
+namespace Detail {
     static inline const std::string __RED__ = "\033[31m";
     static inline const std::string __GREEN__ = "\033[32m";
     static inline const std::string __YELLOW__ = "\033[33m";
@@ -99,7 +99,7 @@ public:
             double min = m_durationTimes.front();
             double max = m_durationTimes.back();
 
-            using namespace detail;
+            using namespace Detail;
             str << "avg: " << __CYAN__ << avg << __RESET__ << " us, median: "
                 << __CYAN__ << median << __RESET__ << " us, min: " << __CYAN__ << min
                 << __RESET__ << " us, max: " << __CYAN__ << max << __RESET__ << " us\n";
@@ -159,7 +159,7 @@ public:
 
     template<typename TestCallable>
     static Result runTest(TestCallable&& test) {
-        using namespace detail;
+        using namespace Detail;
         Result result;
         auto start = std::chrono::high_resolution_clock::now();
         try {			
@@ -417,7 +417,7 @@ public:
     }
 
     static void runAllTests() {
-        using namespace detail;
+        using namespace Detail;
         m_passedTests = 0;
         m_failedTests = 0;
         int totalTests = 0;
@@ -478,7 +478,7 @@ public:
     }
 
     static void runAllBenchmarks() {
-        using namespace detail;
+        using namespace Detail;
         int totalBenchmarks = 0;
 
         for (const auto& [file, benches] : m_benchmarks) {
@@ -678,10 +678,6 @@ public:
 
 };
 
-
-
-
-
 #define __TEST__(name) \
     static void test_##name(); \
     static bool registered_##name = (TestFramework::addTest(std::filesystem::path(__FILE__).filename().string(), #name, test_##name), true); \
@@ -749,16 +745,16 @@ public:
     __benchmark_scope__= [&]() \
 
 #define __ASSERT__(condition) TestFramework::assert(condition, #condition)
-#define __ASSERT_EQ__(expected, actual) TestFramework::assertEqual(expected, actual)
-#define __ASSERT_NE__(expected, actual) TestFramework::assertNotEqual(expected, actual)
-#define __ASSERT_LT__(a, b) TestFramework::assertLessThan(a, b)
-#define __ASSERT_GT__(a, b) TestFramework::assertGreaterThan(a, b)
-#define __ASSERT_NEAR__(expected, actual, epsilon) TestFramework::assertNear(expected, actual, epsilon)
-#define __ASSERT_LE__(a, b) TestFramework::assertLessEqual(a, b)
-#define __ASSERT_GE__(a, b) TestFramework::assertGreaterEqual(a, b)
-#define __ASSERT_NULL__(ptr) TestFramework::assertNull(ptr)
-#define __ASSERT_NOT_NULL__(ptr) TestFramework::assertNotNull(ptr)
-#define __ASSERT_TRUE__(condition) TestFramework::assertTrue(condition)
-#define __ASSERT_FALSE__(condition) TestFramework::assertFalse(condition)
-#define __ASSERT_THROWS__(exception, func) TestFramework::assertThrows<exception>(func)
-#define __ASSERT_NO_THROW__(func) TestFramework::assertNoThrow(func)
+#define __ASSERT_EQ__(expected, actual) TestFramework::assertEqual(expected, actual, std::string(#expected) + "!=" + std::string(#actual))
+#define __ASSERT_NE__(expected, actual) TestFramework::assertNotEqual(expected, actual, std::string(#expected) + "==" + std::string(#actual))
+#define __ASSERT_LT__(a, b) TestFramework::assertLessThan(a, b, std::string(#a) + ">=" + std::string(#b))
+#define __ASSERT_GT__(a, b) TestFramework::assertGreaterThan(a, b, std::string(#a) + "<=" + std::string(#b))
+#define __ASSERT_NEAR__(expected, actual, epsilon) TestFramework::assertNear(expected, actual, epsilon, std::string(#expected) + "-" + std::string(#actual) + ">" + std::string(#epsilon) )
+#define __ASSERT_LE__(a, b) TestFramework::assertLessEqual(a, b, std::string(#a) + ">" + std::string(#b))
+#define __ASSERT_GE__(a, b) TestFramework::assertGreaterEqual(a, b, std::string(#a) + "<" + std::string(#b))
+#define __ASSERT_NULL__(ptr) TestFramework::assertNull(ptr, std::string(#ptr) + "!= 0")
+#define __ASSERT_NOT_NULL__(ptr) TestFramework::assertNotNull(ptr, std::string(#ptr) + "== 0")
+#define __ASSERT_TRUE__(condition) TestFramework::assertTrue(condition, std::string(#condition) + "!= true")
+#define __ASSERT_FALSE__(condition) TestFramework::assertFalse(condition, std::string(#condition) + "!= false")
+#define __ASSERT_THROWS__(exception, func) TestFramework::assertThrows<exception>(func, std::string(#func) + " doesnt throw with exception " + std::string(#exception))
+#define __ASSERT_NO_THROW__(func) TestFramework::assertNoThrow(func, std::string(#func) + " throws")

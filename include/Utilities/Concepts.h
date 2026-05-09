@@ -116,7 +116,7 @@ namespace Containers
 	};
 
 	template <typename T>
-	class ClassLifetimeManager
+	class LifetimeManager
 	{
 	public:
 		template <typename... Args>
@@ -129,87 +129,49 @@ namespace Containers
 		inline void destroy(T *ptr)
 		{
 			static_assert(std::is_destructible_v<T>, "Type is not destructible");
-			ptr->~T();
+			if constexpr (!std::is_trivially_destructible_v<T>) {
+				ptr->~T();
+			}
 		}
 
 		inline void rangeConstruct(T *dest, size_t count) noexcept
 		{
-			for (size_t i = 0; i < count; ++i)
-				construct(dest + i);
+			if constexpr (!std::is_trivially_constructible_v<T>) {
+				for (size_t i = 0; i < count; ++i)
+					construct(dest + i);
+			}
 		}
 
 		inline void rangeConstruct(T *dest, size_t count, const T *src) noexcept
 		{
-			for (size_t i = 0; i < count; ++i)
-				construct(dest + i, src[i]);
+			if constexpr (!std::is_trivially_copyable_v<T>) {
+				for (size_t i = 0; i < count; ++i)
+					construct(dest + i, src[i]);
+			}
+			else {
+				std::memcpy(dest, src, sizeof(T) * count);
+			}
 		}
 
 		inline void rangeMoveConstruct(T *dest, size_t count, T *src) noexcept
 		{
-			for (size_t i = 0; i < count; ++i)
-				construct(dest + i, std::move(src[i]));
+			if constexpr (!std::is_trivially_copyable_v<T>) {
+				for (size_t i = 0; i < count; ++i)
+					construct(dest + i, std::move(src[i]));
+			}
+			else {
+				std::memcpy(dest, src, sizeof(T) * count);
+			}
 		}
 
 		inline void rangeDestroy(T *dest, size_t count) noexcept
 		{
-			for (size_t i = 0; i < count; ++i)
-				destroy(dest + i);
+			if constexpr (!std::is_trivially_destructible_v<T>) {
+				for (size_t i = 0; i < count; ++i)
+					destroy(dest + i);
+			}
 		}
 	};
-
-	template <typename T>
-	class TrivialLifetimeManager
-	{
-	public:
-		static_assert(std::is_trivially_constructible_v<T>, "Type is not trivially constructible");
-		static_assert(std::is_trivially_destructible_v<T>, "Type is not trivially destructible");
-		// static_assert(std::is_trivially_copyable_v<T>, "Type is not trivially copy constructible");
-		// static_assert(std::is_trivially_copy_constructible_v<T>, "Type is not trivially copy constructible");
-		// static_assert(std::is_trivially_copy_assignable_v<T>, "Type is not trivially copy assignable");
-		// static_assert(std::is_trivially_move_constructible_v<T>, "Type is not trivially move constructible");
-		// static_assert(std::is_trivially_move_assignable_v<T>, "Type is not trivially move assignable");
-
-		constexpr inline void construct(T *ptr)
-		{
-			(void)ptr;
-		}
-
-		constexpr inline void construct(T *ptr, const T &value)
-		{
-			*ptr = value;
-		}
-
-		constexpr inline void destroy(T *ptr)
-		{
-			(void)ptr;
-		}
-
-		constexpr inline void rangeConstruct(T *dest, size_t count) noexcept
-		{
-			(void)dest;
-			(void)count;
-		}
-
-		inline void rangeConstruct(T *dest, size_t count, const T *src) noexcept
-		{
-			std::memcpy(dest, src, sizeof(T) * count);
-		}
-
-		inline void rangeMoveConstruct(T *dest, size_t count, T *src) noexcept
-		{
-			std::memcpy(dest, src, sizeof(T) * count);
-		}
-
-		constexpr inline void rangeDestroy(T *dest, size_t count) noexcept
-		{
-			(void)dest;
-			(void)count;
-		}
-	};
-
-	template <typename T>
-	using LifetimeManager = std::conditional_t<std::is_trivially_constructible_v<T> && std::is_trivially_destructible_v<T>,
-	TrivialLifetimeManager<T>, ClassLifetimeManager<T>>;
 
 	template <typename Equ, typename T>
 	concept Equal = requires(Equ alloc, const T &left, const T &right) {

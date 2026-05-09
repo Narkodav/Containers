@@ -82,7 +82,7 @@ namespace Memory::DirectAccessAllocators {
 
         size_t getUsableSize() const { return m_size; }
 
-        template<typename T>
+        template<typename T = void>
         T* allocate(size_t count = 1) {
             return reinterpret_cast<T*>(allocateImpl(sizeof(T) * count));
         }

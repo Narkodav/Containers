@@ -3,37 +3,133 @@
 #include <string>
 #include <stdexcept>
 
+#include "Utilities/Concepts.h"
+#include "Lists/BidirectionalList.h"
+#include "Maps/UnorderedMap.h"
+
 // allocators that can accept any type castable to uintptr_t as a pool pointer
 namespace Memory::ExternalMetadataAllocators {
 
-	/*class ListAllocatorBase
-	{
+	class ListAllocatorNaiveBase {
 	private:
 		struct MemoryRegion {
 			enum class Type : uint8_t {
 				Free,
 				Allocated
 			};
-			MemoryRegion* next;
-			MemoryRegion* previous;
 			Type type;
-
-			inline void* getData() {
-				return reinterpret_cast<uint8_t*>(this) + sizeof(MemoryRegion);
-			}
-
-			inline size_t getSize() {
-				return reinterpret_cast<uint8_t*>(next) - reinterpret_cast<uint8_t*>(getData());
-			}
-
-			inline MemoryRegion* calculateNext(size_t size) {
-				return reinterpret_cast<MemoryRegion*>(reinterpret_cast<uint8_t*>(getData()) + size);
-			}
+			uintptr_t start;
+			size_t size;
 		};
 
-		void* m_data;
+		uintptr_t m_data;
 		size_t m_size;
 		size_t m_freeSize;
+
+		Containers::BidirectionalList<MemoryRegion> m_regions;
+		
+	public:
+		ListAllocatorNaiveBase() = default;
+		~ListAllocatorNaiveBase() = default;
+
+		ListAllocatorNaiveBase(const ListAllocatorNaiveBase&) = delete;
+		ListAllocatorNaiveBase& operator=(const ListAllocatorNaiveBase&) = delete;
+
+		ListAllocatorNaiveBase(ListAllocatorNaiveBase&&) = default;
+		ListAllocatorNaiveBase& operator=(ListAllocatorNaiveBase&&) = default;
+
+		void assign(uintptr_t data, size_t size) {
+			if (size <= sizeof(MemoryRegion))
+				throw std::runtime_error("Size must be more than sizeof(MemoryRegion) bytes");
+			m_data = data;
+			m_size = size;
+			m_freeSize = m_size;
+			m_regions.pushBack(MemoryRegion{MemoryRegion::Type::Free, m_data, m_size});
+		}
+
+        uintptr_t allocate(size_t size) {
+            return allocateImpl(size);
+        }
+
+        void deallocate(uintptr_t ptr) {
+            deallocateImpl(ptr);
+        }
+
+	private:
+
+		uintptr_t allocateImpl(size_t size) {
+			auto it = m_regions.begin();
+			while(true) {				
+				if(it->type == MemoryRegion::Type::Free && it->size >= size) break;
+				++it;
+				if(it == m_regions.end()) return std::numeric_limits<uintptr_t>::max();
+			}
+			
+			if(it->size == size) {
+				it->type = MemoryRegion::Type::Allocated;
+				return it->start;
+			}
+
+			auto allocated = m_regions.insert(it);
+
+			allocated->size = size;
+			allocated->start = it->start;
+			allocated->type = MemoryRegion::Type::Allocated;
+
+			it->size -= size;
+			it->start += size;
+
+			return allocated->start;
+		}
+
+		void deallocateImpl(uintptr_t ptr) {
+			auto it = m_regions.begin();
+			while(true) {				
+				if(it->start == ptr) break;
+				++it;
+				if(it == m_regions.end()) return;
+			}
+			auto prev = it.prev();
+			auto next = it.next();
+
+			if(prev != m_regions.end() && prev->type == MemoryRegion::Type::Free) {
+				it->start = prev->start;
+				it->size += prev->size;
+				m_regions.erase(prev);
+			}
+			if(next != m_regions.end() && next->type == MemoryRegion::Type::Free) {
+				it->size += next->size;
+				m_regions.erase(next);
+			}
+			it->type = MemoryRegion::Type::Free;
+		}
+	};
+
+	class ListAllocatorBase {
+	private:
+		struct MemoryRegion {
+			enum class Type : uint8_t {
+				Free,
+				Allocated
+			};
+			Type type;
+			uintptr_t start;
+			size_t size;
+
+			using Iterator = Containers::BidirectionalList<typename Containers::BidirectionalList<MemoryRegion>::Iterator>::Iterator;
+
+			Iterator storageInterator;
+		};
+
+		uintptr_t m_data;
+		size_t m_size;
+		size_t m_freeSize;
+
+		Containers::BidirectionalList<MemoryRegion> m_regions;
+		Containers::BidirectionalList<typename Containers::BidirectionalList<MemoryRegion>::Iterator> m_freeRegions;
+		Containers::BidirectionalList<typename Containers::BidirectionalList<MemoryRegion>::Iterator> m_allocatedRegions;
+		Containers::UnorderedMap<uintptr_t, typename Containers::BidirectionalList<MemoryRegion>::Iterator> m_pointerToRegionMap;
+		
 	public:
 		ListAllocatorBase() = default;
 		~ListAllocatorBase() = default;
@@ -44,156 +140,91 @@ namespace Memory::ExternalMetadataAllocators {
 		ListAllocatorBase(ListAllocatorBase&&) = default;
 		ListAllocatorBase& operator=(ListAllocatorBase&&) = default;
 
-		void assign(void* data, size_t size) {
+		void assign(uintptr_t data, size_t size) {
 			if (size <= sizeof(MemoryRegion))
 				throw std::runtime_error("Size must be more than sizeof(MemoryRegion) bytes");
 			m_data = data;
 			m_size = size;
-			m_freeSize = size - sizeof(MemoryRegion);
-			MemoryRegion* region = reinterpret_cast<MemoryRegion*>(m_data);
-			region->type = MemoryRegion::Type::Free;
-			region->next = reinterpret_cast<MemoryRegion*>(getEndPointer());
-			region->previous = nullptr;
+			m_freeSize = m_size;
+			m_regions.pushBack(MemoryRegion::Type::Free, m_data, m_size, m_freeRegions.end());
+			m_freeRegions.pushBack(m_regions.begin());
+			m_regions.back().storageInterator = m_freeRegions.begin();
 		}
 
-		template<typename T>
-		T* allocate(size_t count = 1) {
-			if (size > m_size - sizeof(MemoryRegion)) return nullptr;
-			return reinterpret_cast<T*>(allocateImpl(count * sizeof(T)));
-		}
+        uintptr_t allocate(size_t size) {
+            return allocateImpl(size);
+        }
 
-		template<typename T>
-		void deallocate(T* ptr) {
-			if (ptr < m_data || ptr > getEndPointer() || ptr == nullptr)
-				throw std::runtime_error("Invalid pointer");
-			auto region = getFromPointer(ptr);
-			if (region->type == MemoryRegion::Type::Free) throw std::runtime_error("Invalid pointer");
-			deallocateImpl(reinterpret_cast<void*>(ptr));
-		}
-
-		template<typename T>
-		T* reallocate(T* ptr, size_t count = 1) {
-			if (size > m_size - sizeof(MemoryRegion)) throw std::runtime_error("Invalid size");
-			if (ptr < m_data || ptr > getEndPointer() || ptr == nullptr) throw std::runtime_error("Invalid pointer");
-			auto region = getFromPointer(ptr);
-			if (region->type == MemoryRegion::Type::Free) throw std::runtime_error("Invalid pointer");
-			return reinterpret_cast<T*>(reallocateImpl(reinterpret_cast<void*>(ptr), count * sizeof(T)));
-		}
-
-		size_t getSize() {
-			return m_size;
-		}
-
-		double getFragmentationRatio() {
-			auto region = reinterpret_cast<MemoryRegion*>(m_data);
-			auto end = getEndPointer();
-			size_t biggestFree = 0;
-			while(region < end) {
-				if (region->type == MemoryRegion::Type::Free && region->getSize() > biggestFree)
-					biggestFree = region->getSize();
-			}
-			return 1. - static_cast<double>(biggestFree) / static_cast<double>(m_freeSize);
-		}
+        void deallocate(uintptr_t ptr) {
+            deallocateImpl(ptr);
+        }
 
 	private:
-		inline void* getEndPointer() {
-			return reinterpret_cast<uint8_t*>(m_data) + m_size;
-		}
 
-		inline MemoryRegion* getFromPointer(void* ptr) {
-			return reinterpret_cast<MemoryRegion*>(reinterpret_cast<uint8_t*>(ptr) - sizeof(MemoryRegion));
-		}
+		uintptr_t allocateImpl(size_t size) {
+			for(auto it = m_freeRegions.begin(); it != m_freeRegions.end(); ++it) {
+				if((*it)->size > size) {
+					auto current = *it;
+					size_t offset = current->size - size;
+					auto allocation = m_regions.insert(current);
+					allocation->type = MemoryRegion::Type::Allocated;
+					allocation->size = size;
+					allocation->start = current->start;
+					allocation->storageInterator = m_allocatedRegions.insert(m_allocatedRegions.end(), allocation);
+					m_pointerToRegionMap.insert(allocation->start, allocation);
 
-		void* allocateImpl(size_t size) {
-			MemoryRegion* region = reinterpret_cast<MemoryRegion*>(m_data);
-			auto end = getEndPointer();
-			while (region->getSize() < size || region->type == MemoryRegion::Type::Allocated) {
-				region = region->next;
-				if (region == end)
-					return nullptr;
-			}
-			region->type = MemoryRegion::Type::Allocated;
-			m_freeSize -= region->getSize();
-			shrinkToFitRegion(region, size);
-			return region->getData();
-		}
-
-		void deallocateImpl(void* ptr) {
-			auto end = getEndPointer();
-			auto region = getFromPointer(ptr);
-			m_freeSize += region->getSize();
-			auto next = region->next;
-			auto previous = region->previous;
-			if (previous != nullptr && previous->type == MemoryRegion::Type::Free)
-			{
-				region = previous;
-				region->next = next;
-				m_freeSize += sizeof(MemoryRegion);
-			}
-			else region->type = MemoryRegion::Type::Free;
-
-			if (next < end)
-			{
-				if (next->type == MemoryRegion::Type::Free)
-				{
-					region->next = next->next;
-					next = region->next;
-					if (next < end)
-						next->previous = region;
-					m_freeSize += sizeof(MemoryRegion);
+					current->size = offset;
+					current->start += offset;
+					m_freeSize -= size;
+					return allocation->start;
 				}
-				else next->previous = region;
-			}
-		}
-
-		void* reallocateImpl(void* ptr, size_t size) {
-			auto region = getFromPointer(ptr);
-			if(size < region->getSize())
-			{
-				auto newNext = region->calculateNext(size);
-				if (newNext->getData() < region->next)
-				{
-					newNext->previous = region;
-					newNext->next = region->next;
-					newNext->type = MemoryRegion::Type::Free;
-					region->next = newNext;
-					m_freeSize += newNext->getSize();
-					if(newNext->next < getEndPointer() && newNext->next->type == MemoryRegion::Type::Free)
-					{
-						region->next = newNext->next->next;
-						m_freeSize += sizeof(MemoryRegion);
-					}
+				else if((*it)->size == size) {
+					auto current = *it;
+					m_freeRegions.erase(it);
+					current->storageInterator = m_allocatedRegions.insert(m_allocatedRegions.end(), current);
+					current->type = MemoryRegion::Type::Allocated;
+					m_pointerToRegionMap.insert(current->start, current);
+					m_freeSize -= size;
+					return current->start;
 				}
-				return ptr;
 			}
-			else if (region->next < getEndPointer() && region->next->type == MemoryRegion::Type::Free &&
-				region->next->getSize() + sizeof(MemoryRegion) + region->getSize() >= size)
-			{
-				region->next = region->next->next;
-				m_freeSize -= region->next->getSize();
-				region->type = MemoryRegion::Type::Allocated;
-				shrinkToFitRegion(region, size);
-				return ptr;
-			}
-			auto newPtr = allocateImpl(size);
-			if (newPtr == nullptr)
-				throw std::runtime_error("Not enough memory");
-			memcpy(newPtr, ptr, region->getSize());
-			deallocateImpl(ptr);
-			return newPtr;
+			return std::numeric_limits<uintptr_t>::max();
 		}
 
-		inline void shrinkToFitRegion(MemoryRegion* region, size_t size) {
-			auto newNext = region->calculateNext(size);
-			if (newNext->getData() < region->next)
-			{
-				newNext->previous = region;
-				newNext->next = region->next;
-				newNext->type = MemoryRegion::Type::Free;
-				region->next = newNext;
-				m_freeSize += newNext->getSize();
+		void deallocateImpl(uintptr_t ptr) {
+			auto mapIt = m_pointerToRegionMap.find(ptr);
+			if(mapIt == m_pointerToRegionMap.end()) throw std::runtime_error("Trying to deallocate invalid pointer");
+			auto allocation = mapIt->second;
+			m_pointerToRegionMap.erase(mapIt);
+			
+			auto next = allocation.next();
+			auto prev = allocation.prev();
+			m_allocatedRegions.erase(allocation->storageInterator);
+			m_freeSize += allocation->size;
+			
+			if(next != m_regions.end() && next->type == MemoryRegion::Type::Free) {
+				if(prev != m_regions.end() && prev->type == MemoryRegion::Type::Free) {
+					prev->size += allocation->size + next->size;
+					m_freeRegions.erase(next->storageInterator);
+					m_regions.erase(next);					
+					m_regions.erase(allocation);
+				}
+				else {
+					next->start -= allocation->size;
+					next->size += allocation->size;
+					m_regions.erase(allocation);
+				}
 			}
+			else if(prev != m_regions.end() && prev->type == MemoryRegion::Type::Free) {
+				prev->size += allocation->size;
+				m_regions.erase(allocation);
+			}
+			else {
+				allocation->storageInterator = m_freeRegions.insert(m_freeRegions.end(), allocation);
+				allocation->type = MemoryRegion::Type::Free;
+			}			
 		}
-	};*/
+	};
+
 }
 

@@ -4,7 +4,8 @@
 #include <cstddef>
 #include <vector>
 
-#include "../include/Utilities/Concepts.h"
+#include "Utilities/Concepts.h"
+#include "TestFramework.h"
 
 constexpr size_t ARRAY_SIZE = 100'000;
 
@@ -156,6 +157,7 @@ void benchmark_raw_bytes_stack()
 #include "ContainerBenchmarker.h"
 #include "ContainerBenchmarker.h"
 #include "Memory/ExternalMetadataAllocators/BuddyAllocator.h"
+#include "Memory/ExternalMetadataAllocators/ListAllocator.h"
 
 #include <array>
 #include <chrono>
@@ -223,53 +225,27 @@ struct Trivial {
 
 int main()
 {
-    // ContainerBenchmarker::compareContainers<NonTrivial, Containers::UnorderedSet<NonTrivial, NonTrivial::Hasher>, 
-    // std::unordered_set<NonTrivial, NonTrivial::Hasher>>(
-    //     100000, std::string("Custom set"), std::string("std set"), 
-    //     [](size_t i) -> NonTrivial { return NonTrivial(i); }
-    // );
+    TestFramework::runAllTests();
 
-    // Memory::ExternalMetadataAllocators::BuddyAllocatorBase alloc;
-    // Containers::RawAllocator rawAlloc;
-    // size_t memorySize = 1024 * 1024;
-    // void* memory = rawAlloc.allocate(memorySize, 8);
-    // alloc.assign(reinterpret_cast<uintptr_t>(memory), memorySize);
-    // void* ptr = reinterpret_cast<void*>(alloc.allocate(100));
-    // alloc.deallocate(reinterpret_cast<uintptr_t>(ptr));
+    // Memory::ExternalMetadataAllocators::ListAllocatorBase alloc;
+    // alloc.assign(0, 1024);
+
+    // auto ptr1 = alloc.allocate(123);
+
+
+    // Memory::ExternalMetadataAllocators::BuddyBlockAllocator::Tree<uint64_t> tree;
+
+    // tree.init(12);
+
+    // tree.set(10, 123, Memory::ExternalMetadataAllocators::BuddyBlockAllocator::Tree<uint64_t>::NodeState::Free);
+    // tree.set(10, 122, Memory::ExternalMetadataAllocators::BuddyBlockAllocator::Tree<uint64_t>::NodeState::Free);
+    // tree.set(10, 120, Memory::ExternalMetadataAllocators::BuddyBlockAllocator::Tree<uint64_t>::NodeState::Free);
+    // auto index = tree.findFreeAtLevel(0);
+
+    // if(index != 123) __debugbreak();
+
     
-    Containers::TemplateUnion<int, double> un;
-    Containers::TemplateUnion<std::vector<int>, int, double> unn1;
     
-    static_assert(std::is_default_constructible_v<std::variant<std::vector<int>, int, double>>);
-
-    static_assert(std::is_trivially_default_constructible_v<Containers::TemplateUnion<int, double>>);
-    static_assert(!std::is_trivially_default_constructible_v<Containers::TemplateUnion<std::vector<int>, int, double>>);
-
-    static_assert(std::is_trivially_copyable_v<Containers::TemplateUnion<int, double>>);
-    static_assert(std::is_trivially_move_constructible_v<Containers::TemplateUnion<int, double>>);
-    static_assert(std::is_trivially_move_assignable_v<Containers::TemplateUnion<int, double>>);
-    
-    static_assert(std::is_trivially_default_constructible_v<std::array<uint8_t, 2>>);
-
-    auto& m11 = un.get<0>();
-    auto& m12 = un.get<1>();
-
-    auto& m21 = un.get<int>();
-    auto& m22 = un.get<double>();
-
-    un.set<int>(1);
-    un.set<double>(1);
-    un.set<0>(1);
-    un.set<1>(1);
-
-    std::cout << Containers::TupleHasType<int, int, double>::value << std::endl;
-    std::cout << Containers::TupleHasType<double, int, double>::value << std::endl;
-
-    std::cout << Containers::TupleHasDuplicates<int, double>::value << std::endl;
-    std::cout << Containers::TupleHasDuplicates<int, double, int>::value << std::endl;
-
-    std::cout << Containers::TupleTypeToIndex<0, int, int, double>::value << std::endl;
-    std::cout << Containers::TupleTypeToIndex<0, double, int, double>::value << std::endl;
 
     return 0;
 }

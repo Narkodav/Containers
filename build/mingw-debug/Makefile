@@ -173,6 +173,30 @@ ContainersTests/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\ContainersTests.dir\build.make CMakeFiles/ContainersTests.dir/build
 .PHONY : ContainersTests/fast
 
+Tests/BuddyAllocatorTests.obj: Tests/BuddyAllocatorTests.cpp.obj
+.PHONY : Tests/BuddyAllocatorTests.obj
+
+# target to build an object file
+Tests/BuddyAllocatorTests.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ContainersTests.dir\build.make CMakeFiles/ContainersTests.dir/Tests/BuddyAllocatorTests.cpp.obj
+.PHONY : Tests/BuddyAllocatorTests.cpp.obj
+
+Tests/BuddyAllocatorTests.i: Tests/BuddyAllocatorTests.cpp.i
+.PHONY : Tests/BuddyAllocatorTests.i
+
+# target to preprocess a source file
+Tests/BuddyAllocatorTests.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ContainersTests.dir\build.make CMakeFiles/ContainersTests.dir/Tests/BuddyAllocatorTests.cpp.i
+.PHONY : Tests/BuddyAllocatorTests.cpp.i
+
+Tests/BuddyAllocatorTests.s: Tests/BuddyAllocatorTests.cpp.s
+.PHONY : Tests/BuddyAllocatorTests.s
+
+# target to generate assembly for a file
+Tests/BuddyAllocatorTests.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ContainersTests.dir\build.make CMakeFiles/ContainersTests.dir/Tests/BuddyAllocatorTests.cpp.s
+.PHONY : Tests/BuddyAllocatorTests.cpp.s
+
 Tests/main.obj: Tests/main.cpp.obj
 .PHONY : Tests/main.obj
 
@@ -210,6 +234,9 @@ help:
 	@echo ... list_install_components
 	@echo ... rebuild_cache
 	@echo ... ContainersTests
+	@echo ... Tests/BuddyAllocatorTests.obj
+	@echo ... Tests/BuddyAllocatorTests.i
+	@echo ... Tests/BuddyAllocatorTests.s
 	@echo ... Tests/main.obj
 	@echo ... Tests/main.i
 	@echo ... Tests/main.s

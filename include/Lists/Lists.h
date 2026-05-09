@@ -10,20 +10,30 @@
 namespace Containers
 {
     template <typename Node, typename T>
-    concept ForwardListNodeType = requires(Node& node) {
-        {node.next()} -> std::convertible_to<Node*>;
+    concept ListDataNodeType = requires(Node& node) {
         {node.data()} -> std::convertible_to<T*>;
         {node.value()} -> std::convertible_to<T&>;
-        {std::as_const(node).next()} -> std::convertible_to<const Node*>;
         {std::as_const(node).data()} -> std::convertible_to<const T*>;
         {std::as_const(node).value()} -> std::convertible_to<const T&>;
     };
 
-    template <typename Node, typename T>
-    concept BidirectionalListNodeType = ForwardListNodeType<Node, T> && requires(Node& node) {
+    template <typename Node>
+    concept ForwardListSentinelNodeType = requires(Node& node) {
+        {node.next()} -> std::convertible_to<Node*>;
+        {std::as_const(node).next()} -> std::convertible_to<const Node*>;
+    };
+
+    template <typename Node>
+    concept BidirectionalListSentinelNodeType = ForwardListSentinelNodeType<Node> && requires(Node& node) {
         {node.prev()} -> std::convertible_to<Node*>;
         {std::as_const(node).prev()} -> std::convertible_to<const Node*>;
     };
+
+    template <typename Node, typename T>
+    concept ForwardListNodeType = ForwardListSentinelNodeType<Node> && ListDataNodeType<Node, T>;
+
+    template <typename Node, typename T>
+    concept BidirectionalListNodeType = BidirectionalListSentinelNodeType<Node> && ListDataNodeType<Node, T>;
 
     template<typename T>
     class ListForwardNode;
@@ -112,7 +122,7 @@ namespace Containers
     };
     
 
-    template <typename T, ForwardListNodeType<T> Node>
+    template <typename T, typename Node>
     class ForwardListIteratorBase
     {
     protected:
@@ -195,26 +205,109 @@ namespace Containers
         const Node* node() const { return m_node; }
     };
 
-    template <typename T, BidirectionalListNodeType<T> Node>
-    class BidirectionalListIteratorBase : public ForwardListIteratorBase<T, Node>
+    template <typename T, typename Node>
+    class BidirectionalListIteratorBase
     {
-    public:
-        using ForwardListIteratorBase<T, Node>::ForwardListIteratorBase;
+    protected:
+        Node *m_node = nullptr;
 
+    public:
+        using ValueType = T;
+        using Pointer = ValueType*;
+        using Reference = ValueType&;
+
+        BidirectionalListIteratorBase() = default;
+        BidirectionalListIteratorBase(Node *node) : m_node(node) {};
+
+        template <typename U>
+        BidirectionalListIteratorBase(U *node) requires std::convertible_to<const U *, Node *>
+        : m_node(node) {};
+
+        BidirectionalListIteratorBase(const BidirectionalListIteratorBase&) = default;
+        BidirectionalListIteratorBase& operator=(const BidirectionalListIteratorBase&) = default;
+        BidirectionalListIteratorBase(BidirectionalListIteratorBase&&) = default;
+        BidirectionalListIteratorBase& operator=(BidirectionalListIteratorBase&&) = default;
+
+		template <typename U, typename N>
+		constexpr BidirectionalListIteratorBase(BidirectionalListIteratorBase<U, N> it) noexcept
+			requires std::convertible_to<const U *, T *> && std::convertible_to<const N *, Node *>
+			: m_node(it.node()){};
+
+		template <typename U, typename N>
+		constexpr BidirectionalListIteratorBase operator=(BidirectionalListIteratorBase<U, N> it) noexcept
+			requires std::convertible_to<const U *, T *> && std::convertible_to<const N *, Node *>
+		{
+			m_node = it.node();
+		};
+
+        Reference operator*()
+        {
+            return m_node->value();
+        };
+        Pointer operator->()
+        {
+            return m_node->data();
+        };
+
+        const ValueType& operator*() const
+        {
+            return m_node->value();
+        }
+
+        const ValueType* operator->() const
+        {
+            return m_node->data();
+        };
+
+        BidirectionalListIteratorBase &operator++()
+        {
+            Node *next = m_node->next();
+            CONTAINERS_VERIFY(next != nullptr, "Iterator cannot be incremented past the end");
+            m_node = next;
+            return *this;
+        }
+        BidirectionalListIteratorBase operator++(int)
+        {
+            BidirectionalListIteratorBase tmp = *this;
+            Node *next = m_node->next();
+            CONTAINERS_VERIFY(next != nullptr, "Iterator cannot be incremented past the end");
+            m_node = next;
+            return tmp;
+        }
         BidirectionalListIteratorBase &operator--()
         {
-            Node *prev = this->m_node->prev();
-            CONTAINERS_VERIFY(prev != nullptr, "Iterator cannot be decremented past the beginning");
-            this->m_node = prev;
+            Node *prev = m_node->prev();
+            CONTAINERS_VERIFY(prev != nullptr, "Iterator cannot be incremented past the end");
+            m_node = prev;
             return *this;
         }
         BidirectionalListIteratorBase operator--(int)
         {
             BidirectionalListIteratorBase tmp = *this;
-            Node *prev = this->m_node->prev();
-            CONTAINERS_VERIFY(prev != nullptr, "Iterator cannot be decremented past the beginning");
-            this->m_node = prev;
+            Node *prev = m_node->prev();
+            CONTAINERS_VERIFY(prev != nullptr, "Iterator cannot be incremented past the end");
+            m_node = prev;
             return tmp;
+        }
+
+        bool operator==(const BidirectionalListIteratorBase &other) const
+        {
+            return m_node == other.m_node;
+        };
+        bool operator!=(const BidirectionalListIteratorBase &other) const
+        {
+            return m_node != other.m_node;
+        };
+
+        Node* node() { return m_node; }
+        const Node* node() const { return m_node; }
+
+        BidirectionalListIteratorBase next() {
+            return BidirectionalListIteratorBase(m_node->next());
+        }
+
+        BidirectionalListIteratorBase prev() {
+            return BidirectionalListIteratorBase(m_node->prev());
         }
     };
 }

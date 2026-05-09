@@ -23,7 +23,7 @@ namespace Containers
 		constexpr ValueType &back()
 		{
 			CONTAINERS_VERIFY(this->derived().size() > 0, "Container is empty");
-			return this->data()[this->derived().size() - 1];
+			return this->derived().data()[this->derived().size() - 1];
 		}
 		constexpr const ValueType &back() const
 		{

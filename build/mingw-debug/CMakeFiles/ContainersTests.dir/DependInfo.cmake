@@ -8,6 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "E:/Program Files (x86)/Code/C_code/libraries/Containers/Tests/BuddyAllocatorTests.cpp" "CMakeFiles/ContainersTests.dir/Tests/BuddyAllocatorTests.cpp.obj" "gcc" "CMakeFiles/ContainersTests.dir/Tests/BuddyAllocatorTests.cpp.obj.d"
   "E:/Program Files (x86)/Code/C_code/libraries/Containers/Tests/main.cpp" "CMakeFiles/ContainersTests.dir/Tests/main.cpp.obj" "gcc" "CMakeFiles/ContainersTests.dir/Tests/main.cpp.obj.d"
   )
 

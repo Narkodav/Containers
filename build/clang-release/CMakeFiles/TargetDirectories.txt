@@ -1,7 +1,0 @@
-E:/Program Files (x86)/Code/C_code/libraries/Containers/build/clang-release/CMakeFiles/ContainersTests.dir
-E:/Program Files (x86)/Code/C_code/libraries/Containers/build/clang-release/CMakeFiles/edit_cache.dir
-E:/Program Files (x86)/Code/C_code/libraries/Containers/build/clang-release/CMakeFiles/rebuild_cache.dir
-E:/Program Files (x86)/Code/C_code/libraries/Containers/build/clang-release/CMakeFiles/list_install_components.dir
-E:/Program Files (x86)/Code/C_code/libraries/Containers/build/clang-release/CMakeFiles/install.dir
-E:/Program Files (x86)/Code/C_code/libraries/Containers/build/clang-release/CMakeFiles/install/local.dir
-E:/Program Files (x86)/Code/C_code/libraries/Containers/build/clang-release/CMakeFiles/install/strip.dir
