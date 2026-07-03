@@ -1,14 +1,14 @@
 [
 {
-  "directory": "E:/Program Files (x86)/Code/C_code/libraries/Containers/build/mingw-debug",
-  "command": "A:\\compilers\\mingw64\\bin\\g++.exe  @CMakeFiles/ContainersTests.dir/includes_CXX.rsp -g -std=gnu++20 -Wall -Wextra -Wpedantic -o CMakeFiles\\ContainersTests.dir\\Tests\\main.cpp.obj -c \"E:\\Program Files (x86)\\Code\\C_code\\libraries\\Containers\\Tests\\main.cpp\"",
-  "file": "E:/Program Files (x86)/Code/C_code/libraries/Containers/Tests/main.cpp",
-  "output": "CMakeFiles/ContainersTests.dir/Tests/main.cpp.obj"
+  "directory": "E:/Code/C_code/libraries/Containers/build/mingw-debug",
+  "command": "A:\\compilers\\mingw64\\bin\\g++.exe -IE:/Code/C_code/libraries/Containers/include -g -std=gnu++20 -Wall -Wextra -Wpedantic -o CMakeFiles\\ContainersTests.dir\\tests\\main.cpp.obj -c E:\\Code\\C_code\\libraries\\Containers\\tests\\main.cpp",
+  "file": "E:\\Code\\C_code\\libraries\\Containers\\tests\\main.cpp",
+  "output": "CMakeFiles\\ContainersTests.dir\\tests\\main.cpp.obj"
 },
 {
-  "directory": "E:/Program Files (x86)/Code/C_code/libraries/Containers/build/mingw-debug",
-  "command": "A:\\compilers\\mingw64\\bin\\g++.exe  @CMakeFiles/ContainersTests.dir/includes_CXX.rsp -g -std=gnu++20 -Wall -Wextra -Wpedantic -o CMakeFiles\\ContainersTests.dir\\Tests\\BuddyAllocatorTests.cpp.obj -c \"E:\\Program Files (x86)\\Code\\C_code\\libraries\\Containers\\Tests\\BuddyAllocatorTests.cpp\"",
-  "file": "E:/Program Files (x86)/Code/C_code/libraries/Containers/Tests/BuddyAllocatorTests.cpp",
-  "output": "CMakeFiles/ContainersTests.dir/Tests/BuddyAllocatorTests.cpp.obj"
+  "directory": "E:/Code/C_code/libraries/Containers/build/mingw-debug",
+  "command": "A:\\compilers\\mingw64\\bin\\g++.exe -IE:/Code/C_code/libraries/Containers/include -g -std=gnu++20 -Wall -Wextra -Wpedantic -o CMakeFiles\\ContainersTests.dir\\tests\\BuddyAllocatorTests.cpp.obj -c E:\\Code\\C_code\\libraries\\Containers\\tests\\BuddyAllocatorTests.cpp",
+  "file": "E:\\Code\\C_code\\libraries\\Containers\\tests\\BuddyAllocatorTests.cpp",
+  "output": "CMakeFiles\\ContainersTests.dir\\tests\\BuddyAllocatorTests.cpp.obj"
 }
 ]

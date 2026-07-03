@@ -36,7 +36,7 @@ install(EXPORT ContainersTargets
 include(CMakePackageConfigHelpers)
 
 configure_package_config_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/install/ContainersConfig.cmake.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/ContainersConfig.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/ContainersConfig.cmake
     INSTALL_DESTINATION lib/cmake/Containers
 )
@@ -48,8 +48,8 @@ install(FILES
 
 # Add test executable
 add_executable(ContainersTests
-    ${CMAKE_CURRENT_SOURCE_DIR}/Tests/main.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Tests/BuddyAllocatorTests.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/BuddyAllocatorTests.cpp
 )
 
 target_link_libraries(ContainersTests PRIVATE ${PROJECT_NAME})

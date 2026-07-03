@@ -6,7 +6,7 @@
 #include <limits>
 
 #include "TestFramework.h"
-#include "Memory/ExternalMetadataAllocators/BuddyAllocator.h"
+#include "Containers/Memory/ExternalMetadataAllocators/BuddyAllocator.h"
 
 using namespace Memory::ExternalMetadataAllocators;
 

@@ -159,7 +159,6 @@ public:
 
     template<typename TestCallable>
     static Result runTest(TestCallable&& test) {
-        using namespace Detail;
         Result result;
         auto start = std::chrono::high_resolution_clock::now();
         try {			
