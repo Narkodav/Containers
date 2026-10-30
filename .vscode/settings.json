@@ -1,4 +1,4 @@
 {
-    "C_Cpp.errorSquiggles": "disabled"
-    
+    "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild",
+    "C_Cpp.default.compileCommands": "e:\\Code\\C_code\\libraries\\Containers\\build/compile_commands.json"
 }

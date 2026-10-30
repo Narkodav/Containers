@@ -203,8 +203,8 @@ namespace Memory::ExternalMetadataAllocators {
             m_blockCount = Detail::alignNextPow2(blockCount);
             m_levelCount = Detail::log2Floor(m_blockCount) + 1;
 
-            size_t freeListsBitCount = 0;
-            for(size_t i = 0; i < m_levelCount; ++i) freeListsBitCount += 1 << i;
+            // size_t freeListsBitCount = 0;
+            // for(size_t i = 0; i < m_levelCount; ++i) freeListsBitCount += 1 << i;
 
            //m_freeLists.resize((freeListsBitCount - 1) / (sizeof(uint64_t) * 8) + 1, 0);
             m_freeNodeCounts.resize(m_levelCount, 0);
@@ -315,7 +315,7 @@ namespace Memory::ExternalMetadataAllocators {
         }
 
         bool isFree() const {
-            return m_freeNodeCounts.empty() || m_freeNodeCounts[0] == 1 && m_blockStates.get(0, 0) == Tree<uint64_t>::NodeState::Free;
+            return m_freeNodeCounts.empty() || (m_freeNodeCounts[0] == 1 && m_blockStates.get(0, 0) == Tree<uint64_t>::NodeState::Free);
         }
 
     private:
